@@ -1,3 +1,5 @@
+<img width="2752" height="1536" alt="Gemini_Generated_Image_w6fozgw6fozgw6fo" src="https://github.com/user-attachments/assets/c63bda37-2e7c-4534-9911-5f3503824fcc" />
+
 Architecture overview
 
 The project is an Odoo 16 addon stack plus a separate Python service.
