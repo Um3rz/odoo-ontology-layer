@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- The Onto AI bot: an internal user with no password and no API key. It acts only
+         through Odoo-minted bot tokens (0.4), so there is no lock key to leak. Its
+         optional app read groups come from onto_bot_groups.xml. Link (4) commands only:
+         a (6,0) list here would strip those grants on every -i re-init. -->
+    <record id="user_onto_bot" model="res.users">
+        <field name="name">Onto AI Bot</field>
+        <field name="login">onto-ai-bot</field>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="company_ids" eval="[(6, 0, [ref('base.main_company')])]"/>
+        <field name="groups_id" eval="[(4, ref('base.group_user')), (4, ref('odoo_dashboards_bi.group_onto_bot'))]"/>
+    </record>
+</odoo>

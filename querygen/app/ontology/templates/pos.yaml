@@ -1,0 +1,69 @@
+# Point of sale (Odoo 16 point_of_sale). Only paid, done and invoiced orders are sales.
+# pos.order.config_id is not stored in 16, so the till is reached through the session.
+name: pos
+domains:
+  - {key: pos, label: Point of sale}
+  - {key: pos.sales, label: Till sales, parent: pos, synonyms: [POS sales, receipts, tickets, till sales]}
+  - {key: pos.sessions, label: Sessions and tills, parent: pos, synonyms: [shifts, tills, registers]}
+objects:
+  - key: pos_order
+    label: POS order
+    domain: pos.sales
+    base_model: pos.order
+    synonyms: [POS order, receipt, ticket, till order, transaction]
+    base_filter:
+      - {prop: order_status, op: in, value: [paid, done, invoiced]}
+    properties:
+      - {key: receipt_number, label: Receipt number, role: id, bindings: {"16": name}, synonyms: [receipt number, ticket number, order number]}
+      - {key: order_time, label: Order time, role: time, bindings: {"16": date_order}, synonyms: [order date, sale time, receipt date]}
+      - {key: session, label: Session, role: link, bindings: {"16": session_id}, synonyms: [session, shift, till session]}
+      - {key: till, label: Till, role: dimension, bindings: {"16": session_id.config_id}, synonyms: [till, POS, register, POS config]}
+      - {key: customer, label: Customer, role: dimension, bindings: {"16": partner_id}, synonyms: [customer, client]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+      - {key: order_status, label: Order status, role: status, bindings: {"16": state}, synonyms: [status, state]}
+      - {key: total, label: Order total, role: measure, unit: money, bindings: {"16": amount_total}, synonyms: [order total, receipt total, total incl tax]}
+  - key: pos_order_line
+    label: POS order line
+    domain: pos.sales
+    base_model: pos.order.line
+    synonyms: [POS line, receipt line, till line, sold item]
+    base_filter:
+      - {prop: order_status, op: in, value: [paid, done, invoiced]}
+    properties:
+      - {key: order, label: POS order, role: link, bindings: {"16": order_id}, synonyms: [receipt, order]}
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item, menu item]}
+      - {key: order_time, label: Order time, role: time, bindings: {"16": order_id.date_order}, synonyms: [sale date, order date, receipt date]}
+      - {key: till, label: Till, role: dimension, bindings: {"16": order_id.session_id.config_id}, synonyms: [till, POS, register]}
+      - {key: session, label: Session, role: dimension, bindings: {"16": order_id.session_id}, synonyms: [session, shift]}
+      - {key: order_status, label: Order status, role: status, bindings: {"16": order_id.state}, synonyms: [status, order status]}
+      - {key: quantity, label: Quantity sold, role: measure, unit: qty, bindings: {"16": qty}, synonyms: [quantity, qty, units sold]}
+      - {key: unit_price, label: Unit price, role: measure, unit: money, bindings: {"16": price_unit}, synonyms: [unit price, price]}
+      - {key: net_amount, label: Net amount, role: measure, unit: money, bindings: {"16": price_subtotal}, synonyms: [net sales, sales excl tax, subtotal]}
+      - {key: gross_amount, label: Gross amount, role: measure, unit: money, bindings: {"16": price_subtotal_incl}, synonyms: [gross sales, sales incl tax, total incl tax]}
+      - {key: cost, label: Cost, role: measure, unit: money, bindings: {"16": total_cost}, synonyms: [cost of sales, cost, product cost]}
+  - key: pos_session
+    label: POS session
+    domain: pos.sessions
+    base_model: pos.session
+    synonyms: [session, shift, till session, register session]
+    properties:
+      - {key: session_name, label: Session name, role: id, bindings: {"16": name}, synonyms: [session name, shift name]}
+      - {key: till, label: Till, role: dimension, bindings: {"16": config_id}, synonyms: [till, POS, register]}
+      - {key: opened_at, label: Opened at, role: time, bindings: {"16": start_at}, synonyms: [opened, session start, shift start]}
+      - {key: closed_at, label: Closed at, role: time, bindings: {"16": stop_at}, synonyms: [closed, session end, shift end]}
+      - {key: session_status, label: Session status, role: status, bindings: {"16": state}, synonyms: [status, state]}
+      - {key: cashier, label: Cashier, role: dimension, bindings: {"16": user_id}, synonyms: [cashier, operator, user]}
+rules: []
+metrics:
+  - {key: pos_order_count, label: POS orders, object: pos_order, unit: count, additivity: additive, aggregation: count, time_property: order_time, synonyms: [POS orders, receipts count, tickets, transactions]}
+  - {key: pos_units, label: POS units sold, object: pos_order_line, unit: qty, additivity: additive, aggregation: sum, measure: quantity, time_property: order_time, synonyms: [POS units, units sold at till, POS quantity]}
+  - {key: pos_net_sales, label: POS net sales, object: pos_order_line, unit: money, additivity: additive, aggregation: sum, measure: net_amount, time_property: order_time, synonyms: [POS net sales, till sales excl tax, POS revenue net]}
+  - {key: pos_gross_sales, label: POS gross sales, object: pos_order_line, unit: money, additivity: additive, aggregation: sum, measure: gross_amount, time_property: order_time, synonyms: [POS gross sales, till sales incl tax, POS sales]}
+  - {key: pos_cost, label: POS cost of sales, object: pos_order_line, unit: money, additivity: additive, aggregation: sum, measure: cost, time_property: order_time, synonyms: [POS cost, till cost of sales, POS product cost]}
+  - {key: pos_margin, label: POS margin, object: pos_order_line, unit: money, additivity: additive, aggregation: sum, derived_from: "net_amount - cost", time_property: order_time, synonyms: [POS margin, till gross profit, POS profit]}
+  - {key: pos_session_count, label: POS sessions, object: pos_session, unit: count, additivity: additive, aggregation: count, time_property: opened_at, synonyms: [sessions, shifts count, till sessions]}
+links:
+  - {key: pos_line_order, label: POS line to order, source: pos_order_line, target: pos_order, via: order, cardinality: "m:1", synonyms: [receipt of line]}
+  - {key: pos_line_product, label: POS line to product, source: pos_order_line, target: product, via: product, cardinality: "m:1", synonyms: [product sold]}
+  - {key: pos_order_session, label: POS order to session, source: pos_order, target: pos_session, via: session, cardinality: "m:1", synonyms: [session of receipt]}
+  - {key: pos_order_customer, label: POS order to customer, source: pos_order, target: partner, via: customer, cardinality: "m:1", synonyms: [customer of receipt]}

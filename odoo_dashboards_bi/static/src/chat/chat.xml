@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_dashboards_bi.BiHomePage" owl="1">
+        <section class="o_native_bi_home o_hs_ai_page">
+            <BiChat/>
+        </section>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiDrawer" owl="1">
+        <button t-if="!state.open" type="button" class="o_native_bi_launcher"
+                title="Open AI chat" aria-label="Open AI chat" t-on-click="open">
+            <i class="fa fa-bar-chart" aria-hidden="true"/>
+        </button>
+        <aside t-else="" id="native_bi_drawer"
+               class="o_native_bi_drawer o_glass_drawer"
+               t-att-class="{'o_glass_theme_normal': normal}"
+               t-att-style="palette"
+               aria-label="AI chat" t-on-keydown="onKeydown">
+            <button type="button" class="o_native_bi_drawer_close"
+                    title="Close AI chat" aria-label="Close AI chat" t-on-click="close">
+                <i class="fa fa-times" aria-hidden="true"/>
+            </button>
+            <BiChat drawer="true"/>
+        </aside>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiChatAction" owl="1">
+        <section class="o_native_bi_page">
+            <BiChat/>
+        </section>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiChat" owl="1">
+        <div class="o_native_bi_chat o_native_bi_theme" t-att-class="{'o_native_bi_full_chat': !props.drawer, 'o_native_bi_in_drawer': props.drawer}">
+            <header class="o_native_bi_header">
+                <div class="o_native_bi_identity">
+                    <button t-if="!props.drawer and state.threads.length" type="button"
+                            class="o_native_bi_icon_btn o_native_bi_recent_toggle"
+                            t-att-title="recentToggleLabel" t-att-aria-label="recentToggleLabel"
+                            t-att-aria-expanded="layout.recentExpanded ? 'true' : 'false'"
+                            aria-controls="native_bi_recent_chats" t-on-click="toggleRecent">
+                        <i class="fa fa-columns" aria-hidden="true"/>
+                    </button>
+                    <span class="o_native_bi_mark" aria-hidden="true"><i class="fa fa-magic"/></span>
+                    <div class="o_native_bi_heading">
+                        <h2>AI chat</h2>
+                        <p class="o_native_bi_sub" t-esc="state.thread?.title || 'Ask anything about your Odoo data'"/>
+                    </div>
+                </div>
+                <div class="o_native_bi_thread_controls">
+                    <select t-if="state.threads.length" class="o_native_bi_select"
+                            aria-label="Conversation" t-on-change="onThreadChange"
+                            t-att-disabled="state.loading || state.sending">
+                        <option value="" t-att-selected="!state.thread">Conversations</option>
+                        <option t-foreach="state.threads" t-as="thread" t-key="thread.id"
+                                t-att-value="thread.id" t-att-selected="state.thread?.id === thread.id"
+                                t-esc="thread.title"/>
+                    </select>
+                    <button t-if="access.canManageOntology" class="o_native_bi_pill" type="button"
+                            title="Ontology setup" t-on-click="openOntology">
+                        <i class="fa fa-sitemap" aria-hidden="true"/><span>Ontology</span>
+                    </button>
+                    <button class="o_native_bi_pill o_native_bi_pill--primary" type="button"
+                            t-on-click="newChat" t-att-disabled="state.loading || state.sending">
+                        <i class="fa fa-plus" aria-hidden="true"/><span>New chat</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="o_native_bi_workspace">
+                <aside t-if="!props.drawer and state.threads.length" id="native_bi_recent_chats"
+                       class="o_native_bi_recent" aria-label="Recent conversations"
+                       t-att-hidden="!layout.recentExpanded">
+                    <h3>Recent</h3>
+                    <button t-foreach="state.threads" t-as="thread" t-key="thread.id" type="button"
+                            class="o_native_bi_recent_item" t-att-aria-current="state.thread?.id === thread.id ? 'true' : null"
+                            t-att-title="thread.title" t-on-click="() => this.selectThread(thread.id)">
+                        <i class="fa fa-comment-o" aria-hidden="true"/><span t-esc="thread.title"/>
+                    </button>
+                </aside>
+                <div class="o_native_bi_conversation">
+                    <div class="o_native_bi_transcript" t-ref="transcript"
+                         role="log" aria-label="Chat messages">
+                        <p t-if="state.loading" class="o_native_bi_loading">Loading conversation…</p>
+                        <div t-elif="!messages.length" class="o_native_bi_empty">
+                            <span class="o_native_bi_mark o_native_bi_mark--lg" aria-hidden="true"><i class="fa fa-magic"/></span>
+                            <h3>What do you want to analyze?</h3>
+                            <p>Ask about your Odoo data. Attach a record, view, or widget to focus the answer.</p>
+                            <div class="o_native_bi_prompts" aria-label="Suggested questions">
+                                <button t-foreach="prompts" t-as="prompt" t-key="prompt_index" type="button"
+                                        class="o_native_bi_prompt" t-on-click="() => this.usePrompt(prompt)">
+                                    <i class="fa fa-lightbulb-o" aria-hidden="true"/><span t-esc="prompt"/>
+                                </button>
+                            </div>
+                        </div>
+                        <article t-foreach="messages" t-as="message" t-key="message.id || message_index"
+                                 class="o_native_bi_message"
+                                 t-att-class="message.role === 'user' ? 'o_native_bi_user' : 'o_native_bi_assistant'">
+                            <span t-if="message.role !== 'user'" class="o_native_bi_avatar" aria-hidden="true"><i class="fa fa-magic"/></span>
+                            <div class="o_native_bi_bubble">
+                                <div class="o_native_bi_message_text" t-esc="message.text || message.card?.text"/>
+                                <div t-if="message.stale" class="o_native_bi_stale">Data has changed since this answer. Ask again for current figures.</div>
+                                <BiAnswer t-if="message.card" card="message.card"/>
+                                <BiActivity t-if="message.sources_used?.length" sources="message.sources_used"/>
+                            </div>
+                        </article>
+                        <div t-if="state.active" class="o_native_bi_message o_native_bi_assistant o_native_bi_live">
+                            <span class="o_native_bi_avatar" aria-hidden="true"><i class="fa fa-magic"/></span>
+                            <div class="o_native_bi_bubble">
+                                <BiActivity t-if="state.sources.length" sources="state.sources" live="true"/>
+                                <div t-if="state.streaming and state.preview" class="o_native_bi_answer_preview">
+                                    <span t-esc="state.preview"/><span class="o_native_bi_stream_cursor" aria-hidden="true"/>
+                                </div>
+                                <p t-else="" class="o_native_bi_progress" role="status">
+                                    <span class="o_native_bi_dots" aria-hidden="true"><i/><i/><i/></span>
+                                    <t t-esc="state.streaming ? 'Opening verified answer…' : (state.progress || 'Working on your question…')"/>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form class="o_native_bi_compose" t-on-submit.prevent="send">
+                        <div t-if="state.error" class="o_native_bi_error" role="alert">
+                            <i class="fa fa-exclamation-circle" aria-hidden="true"/>
+                            <span t-esc="state.error"/>
+                            <button t-if="!state.initialized" type="button" class="o_native_bi_link"
+                                    t-on-click="() => this.bi.initialize()">Retry</button>
+                        </div>
+                        <div class="o_native_bi_compose_box">
+                            <div t-if="state.attachment || currentContext" class="o_native_bi_compose_tools">
+                                <span t-if="state.attachment" class="o_native_bi_attachment">
+                                    <i class="fa fa-paperclip" aria-hidden="true"/>
+                                    <span t-esc="state.attachment.label"/>
+                                    <button type="button" class="o_native_bi_chip_close"
+                                            aria-label="Remove attachment" title="Remove attachment"
+                                            t-on-click="() => this.state.attachment = null">
+                                        <i class="fa fa-times" aria-hidden="true"/>
+                                    </button>
+                                </span>
+                                <button t-elif="currentContext" class="o_native_bi_attach" type="button" t-on-click="addContext">
+                                    <i class="fa fa-paperclip" aria-hidden="true"/> <t t-esc="attachLabel"/>
+                                </button>
+                            </div>
+                            <div class="o_native_bi_compose_row">
+                                <textarea rows="1" class="o_native_bi_input" placeholder="Ask a question about your Odoo data"
+                                          aria-label="Your question" t-ref="compose" t-model="state.draft"
+                                          t-on-keydown="onComposeKeydown"/>
+                                <button t-if="state.active and !state.streaming" type="button" class="o_native_bi_stop"
+                                        title="Stop" aria-label="Stop" t-on-click="() => this.bi.cancel()">
+                                    <i class="fa fa-stop" aria-hidden="true"/>
+                                </button>
+                                <button t-else="" type="submit" class="o_native_bi_send" aria-label="Send message" title="Send message" t-att-disabled="!canSend">
+                                    <i class="fa fa-arrow-up" aria-hidden="true"/>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="o_native_bi_compose_hint">Enter to send · Shift+Enter for a new line</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiActivity" owl="1">
+        <details class="o_native_bi_activity" t-att-open="props.live">
+            <summary><i class="fa fa-list-ol" aria-hidden="true"/> Source activity</summary>
+            <ol>
+                <li t-foreach="props.sources" t-as="source" t-key="source_index">
+                    <span class="o_native_bi_activity_action" t-esc="toolLabel(source)"/>
+                    <strong t-esc="source.label"/>
+                    <small t-if="source.reference" t-esc="source.reference"/>
+                    <small t-if="source.dimensions?.length">Grouped by <t t-esc="source.dimensions.join(', ')"/></small>
+                    <small t-if="source.period?.from and source.period?.to">
+                        <t t-esc="source.period.from"/> – <t t-esc="source.period.to"/>
+                    </small>
+                    <small t-if="source.release" t-att-title="source.release">Release <t t-esc="source.release.slice(0, 8)"/></small>
+                </li>
+            </ol>
+        </details>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiChart" owl="1">
+        <figure class="o_native_bi_figure">
+            <figcaption t-if="props.chart.title" t-esc="props.chart.title"/>
+            <div class="o_native_bi_chart" t-ref="chart" role="img"
+                 t-att-aria-label="props.chart.title || 'Chart of the answer'"/>
+        </figure>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiAnswer" owl="1">
+        <div class="o_native_bi_answer">
+            <span t-if="card.badge || card.trust" class="o_native_bi_badge" t-esc="card.badge || card.trust"/>
+            <div t-if="numbers.length" class="o_native_bi_numbers">
+                <div class="o_native_bi_number" t-foreach="numbers" t-as="number" t-key="number_index">
+                    <span t-esc="number.label"/>
+                    <strong><t t-esc="formatCell(number.value)"/> <small t-if="number.unit" t-esc="number.unit"/></strong>
+                    <small t-if="number.previous !== undefined and number.previous !== null">
+                        Previous <t t-esc="formatCell(number.previous)"/>
+                    </small>
+                </div>
+            </div>
+            <BiChart t-if="chart" chart="chart"/>
+            <details t-if="card.table?.columns?.length" class="o_native_bi_data" t-att-open="!chart">
+                <summary>Data table <span t-esc="card.table.rows.length"/></summary>
+                <div class="o_native_bi_table_wrap" tabindex="0" aria-label="Data table">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th t-foreach="card.table.columns" t-as="column" t-key="column_index" scope="col">
+                                <t t-esc="columnLabel(column)"/>
+                                <small t-if="column.unit" class="d-block text-muted" t-esc="column.unit"/>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="card.table.rows || []" t-as="row" t-key="row_index">
+                            <td t-foreach="card.table.columns" t-as="column" t-key="column_index"
+                                t-esc="formatCell(row[column_index])"/>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </details>
+            <p t-if="card.table?.truncated" class="small text-muted">Showing a limited result set.</p>
+            <p t-if="card.unreviewed" class="o_native_bi_evidence_note">Built automatically by the ontology builder — definitions not yet reviewed.</p>
+            <p t-if="card.guard and !card.guard.ok" class="o_native_bi_evidence_note">
+                <i class="fa fa-info-circle" aria-hidden="true"/> The generated explanation could not be verified.
+            </p>
+            <details t-if="sources.length || card.definition" class="o_native_bi_sources">
+                <summary>Sources and definition</summary>
+                <p t-if="card.definition" class="small">
+                    <t t-esc="card.definition.label || card.definition.name || ''"/>
+                    <t t-if="card.definition.aggregation"> · <t t-esc="card.definition.aggregation"/></t>
+                    <t t-if="card.definition.formula"> · <t t-esc="card.definition.formula"/></t>
+                </p>
+                <ul t-if="sources.length">
+                    <li t-foreach="sources" t-as="source" t-key="source_index">
+                        <a t-if="sourceUrl(source)" t-att-href="sourceUrl(source)" target="_blank"
+                           rel="noopener noreferrer" t-esc="sourceLabel(source)"/>
+                        <button t-elif="sourceRecord(source)" type="button" class="btn btn-link btn-sm p-0"
+                                t-on-click="() => this.openSource(source)" t-esc="sourceLabel(source)"/>
+                        <span t-else="" t-esc="sourceLabel(source)"/>
+                        <small t-if="source.read_at" class="text-muted ms-1" t-esc="source.read_at"/>
+                    </li>
+                </ul>
+            </details>
+        </div>
+    </t>
+</templates>

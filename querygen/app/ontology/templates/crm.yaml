@@ -1,0 +1,29 @@
+name: crm
+domains:
+  - {key: crm, label: CRM}
+  - {key: crm.pipeline, label: Sales pipeline, parent: crm}
+objects:
+  - key: crm_opportunity
+    label: CRM opportunity
+    domain: crm.pipeline
+    base_model: crm.lead
+    synonyms: [opportunity, pipeline deal]
+    base_filter:
+      - {prop: lead_kind, op: "=", value: opportunity}
+    properties:
+      - {key: opportunity_name, label: Opportunity name, role: id, bindings: {"16": name}, synonyms: ["opportunity name"]}
+      - {key: lead_kind, label: Lead or opportunity, role: status, bindings: {"16": type}, synonyms: ["lead or opportunity"]}
+      - {key: opportunity_active, label: Active, role: status, bindings: {"16": active}, synonyms: ["active"]}
+      - {key: opportunity_stage, label: Stage, role: dimension, bindings: {"16": stage_id}, synonyms: ["stage"]}
+      - {key: opportunity_team, label: Sales team, role: dimension, bindings: {"16": team_id}, synonyms: ["sales team"]}
+      - {key: opportunity_contact, label: Contact, role: dimension, bindings: {"16": partner_id}, synonyms: ["contact"]}
+      - {key: opportunity_company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: ["company"]}
+      - {key: opportunity_created, label: Created on, role: time, bindings: {"16": create_date}, synonyms: ["created on"]}
+      - {key: expected_close, label: Expected close, role: time, bindings: {"16": date_deadline}, synonyms: ["expected close"]}
+      - {key: expected_value, label: Expected revenue, role: measure, unit: money, bindings: {"16": expected_revenue}, synonyms: ["expected revenue"]}
+rules:
+  - {key: active_opportunity, label: Active opportunity, object: crm_opportunity, when: [{prop: opportunity_active, op: "=", value: true}]}
+metrics:
+  - {key: active_opportunity_count, label: Active CRM opportunities, object: crm_opportunity, unit: count, additivity: additive, aggregation: count, filters: [active_opportunity], synonyms: [active opportunities, open CRM pipeline count]}
+links:
+  - {key: opportunity_for_contact, label: Pursues business with contact, source: crm_opportunity, target: partner, via: opportunity_contact, cardinality: "m:1"}

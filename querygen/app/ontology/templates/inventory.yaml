@@ -1,0 +1,197 @@
+# Inventory (Odoo 16 stock, product_expiry, stock_account). Stock is a balance, so
+# semi-additive metrics are never summed over time (plan A3.1, Appendix R2 s.6).
+# Rows with no org-map role count as usable: the compiler must emit "IS NULL OR NOT IN".
+name: inventory
+domains:
+  - {key: inventory, label: Inventory}
+  - {key: inventory.stock, label: Stock, parent: inventory, synonyms: [stock on hand, positions, stock levels]}
+  - {key: inventory.lots, label: Lots and expiry, parent: inventory, synonyms: [batches, expiry]}
+  - {key: inventory.movements, label: Movements, parent: inventory, synonyms: [transfers, receipts, deliveries]}
+  - {key: inventory.valuation, label: Valuation, parent: inventory, synonyms: [stock value, inventory cost]}
+  - {key: inventory.waste, label: Waste, parent: inventory, synonyms: [scrap, spoilage, write-off]}
+objects:
+  - key: stock_position
+    label: Stock position
+    domain: inventory.stock
+    base_model: stock.quant
+    # Quants are the balance at the as_of time, so semi-additive metrics need no time property.
+    snapshot: true
+    synonyms: [stock, stock position, inventory position, stock level, on hand]
+    # Internal and transit locations only: virtual quants (supplier, customer, inventory) are not stock.
+    base_filter:
+      - {prop: location_usage, op: in, value: [internal, transit]}
+    properties:
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item, sku]}
+      - {key: product_category, label: Product category, role: dimension, bindings: {"16": product_id.product_tmpl_id.categ_id}, synonyms: [category, product group]}
+      - {key: stock_uom, label: Stock unit of measure, role: dimension, bindings: {"16": product_id.product_tmpl_id.uom_id}, synonyms: ["stock unit of measure"]}
+      - {key: location, label: Location, role: dimension, bindings: {"16": location_id}, synonyms: [location, bin, stock location]}
+      - {key: location_usage, label: Location type, role: status, bindings: {"16": location_id.usage}, synonyms: [location type, usage]}
+      - {key: location_role, label: Location role, role: dimension, org_role: location_role, synonyms: [location role, stock role, role]}
+      - {key: warehouse, label: Warehouse, role: dimension, bindings: {"16": location_id.warehouse_id}, synonyms: [warehouse, store, site]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company, legal entity]}
+      - {key: lot, label: Lot, role: dimension, bindings: {"16": lot_id}, synonyms: [lot, batch, lot number]}
+      - {key: expiry_date, label: Expiry date, role: time, bindings: {"16": lot_id.expiration_date}, synonyms: [expiry, expiry date, expiration date, best before]}
+      - {key: received_on, label: Received on, role: time, bindings: {"16": in_date}, synonyms: [received date, stock in date, in date]}
+      - {key: counted, label: Counted, role: status, bindings: {"16": inventory_quantity_set}, synonyms: [counted, count done, count set]}
+      - {key: quantity, label: Quantity on hand, role: measure, unit: qty, bindings: {"16": quantity}, synonyms: [on hand, stock on hand, quantity, qty]}
+      - {key: reserved_quantity, label: Reserved quantity, role: measure, unit: qty, bindings: {"16": reserved_quantity}, synonyms: [reserved, committed, reserved qty]}
+      - {key: count_diff, label: Count difference, role: measure, unit: qty, bindings: {"16": inventory_diff_quantity}, synonyms: [count variance, discrepancy, count difference]}
+  - key: stock_lot
+    label: Lot
+    domain: inventory.lots
+    base_model: stock.lot
+    synonyms: [lot, batch, lot number, serial batch]
+    properties:
+      - {key: lot_number, label: Lot number, role: id, bindings: {"16": name}, synonyms: [lot number, batch number, lot name]}
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item]}
+      - {key: expiry_date, label: Expiration date, role: time, bindings: {"16": expiration_date}, synonyms: [expiry date, expiration date, expires]}
+      - {key: best_before, label: Best before date, role: time, bindings: {"16": use_date}, synonyms: [best before, use by, use date]}
+      - {key: removal_date, label: Removal date, role: time, bindings: {"16": removal_date}, synonyms: [removal date, FEFO date]}
+      - {key: alert_date, label: Alert date, role: time, bindings: {"16": alert_date}, synonyms: [alert date, expiry alert date]}
+  - key: stock_move
+    label: Stock move
+    domain: inventory.movements
+    base_model: stock.move
+    synonyms: [move, stock movement, goods movement, receipt, delivery]
+    # Done moves only: a planned move has not happened yet.
+    base_filter:
+      - {prop: move_status, op: "=", value: done}
+    properties:
+      - {key: move_status, label: Move status, role: status, bindings: {"16": state}, synonyms: [status, state]}
+      - {key: move_date, label: Move date, role: time, bindings: {"16": date}, synonyms: [date, done date, move date]}
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item]}
+      - {key: operation_code, label: Operation type, role: status, bindings: {"16": picking_type_id.code}, synonyms: [operation type, direction, receipt or delivery]}
+      - {key: source_location, label: Source location, role: dimension, bindings: {"16": location_id}, synonyms: [from location, source, origin location]}
+      - {key: destination_location, label: Destination location, role: dimension, bindings: {"16": location_dest_id}, synonyms: [to location, destination]}
+      - {key: done_quantity, label: Done quantity, role: measure, unit: qty, bindings: {"16": quantity_done}, synonyms: [done qty, quantity done, moved quantity]}
+      - {key: demand_quantity, label: Demand quantity, role: measure, unit: qty, bindings: {"16": product_uom_qty}, synonyms: [demand, planned quantity, ordered quantity]}
+      - {key: inventory_adjustment, label: Inventory adjustment, role: status, bindings: {"16": is_inventory}, synonyms: [count adjustment, adjustment]}
+      - {key: scrapped, label: Scrapped, role: status, bindings: {"16": scrapped}, synonyms: [scrapped, waste]}
+      - {key: picking, label: Transfer, role: link, bindings: {"16": picking_id}, synonyms: [transfer, picking]}
+      - {key: purchase_line, label: Purchase line, role: link, bindings: {"16": purchase_line_id}, synonyms: [PO line, purchase line]}
+      - {key: sales_line, label: Sales order line fulfilled, role: link, bindings: {"16": sale_line_id}, synonyms: ["sales order line fulfilled"]}
+      - {key: operation_type_ref, label: Operation type, role: dimension, bindings: {"16": picking_type_id}, synonyms: ["operation type"]}
+  - key: stock_movement_detail
+    label: Completed stock move line
+    domain: inventory.movements
+    base_model: stock.move.line
+    synonyms: [move line, lot movement, detailed operation]
+    base_filter:
+      - {prop: detail_state, op: "=", value: done}
+    properties:
+      - {key: detail_state, label: Move state, role: status, bindings: {"16": move_id.state}, synonyms: ["move state"]}
+      - {key: movement_date, label: Movement date, role: time, bindings: {"16": date}, synonyms: ["movement date"]}
+      - {key: movement, label: Stock move, role: link, bindings: {"16": move_id}, synonyms: ["stock move"]}
+      - {key: movement_product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: ["product"]}
+      - {key: movement_lot, label: Lot, role: dimension, bindings: {"16": lot_id}, synonyms: ["lot"]}
+      - {key: movement_from, label: Source location, role: dimension, bindings: {"16": location_id}, synonyms: ["source location"]}
+      - {key: movement_to, label: Destination location, role: dimension, bindings: {"16": location_dest_id}, synonyms: ["destination location"]}
+      - {key: movement_uom, label: Move line unit of measure, role: dimension, bindings: {"16": product_uom_id}, synonyms: ["move line unit of measure"]}
+      - {key: processed_quantity, label: Quantity moved, role: measure, unit: qty, bindings: {"16": qty_done}, synonyms: ["quantity moved"]}
+  - key: stock_valuation
+    label: Stock valuation layer
+    domain: inventory.valuation
+    base_model: stock.valuation.layer
+    # Remaining value and quantity describe the balance now, so the object is a snapshot.
+    # Warehouse is the receiving one: an internal transfer makes no layer, so a branch reads 0. Branch value needs
+    # quantity x standard_price, which is not a stored column.
+    snapshot: true
+    synonyms: [valuation, stock value, cost layer, inventory value]
+    properties:
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+      - {key: layer_date, label: Layer date, role: time, bindings: {"16": create_date}, synonyms: [date, layer date, valuation date]}
+      - {key: layer_quantity, label: Layer quantity, role: measure, unit: qty, bindings: {"16": quantity}, synonyms: [layer qty, layer quantity]}
+      - {key: value, label: Layer value, role: measure, unit: money, bindings: {"16": value}, synonyms: [value, layer value, cost value]}
+      - {key: remaining_quantity, label: Remaining quantity, role: measure, unit: qty, bindings: {"16": remaining_qty}, synonyms: [remaining qty, qty left]}
+      - {key: remaining_value, label: Remaining value, role: measure, unit: money, bindings: {"16": remaining_value}, synonyms: [remaining value, value left, stock value]}
+      - {key: unit_cost, label: Unit cost, role: measure, unit: money, bindings: {"16": unit_cost}, synonyms: [unit cost, cost per unit]}
+      - {key: layer_move, label: Stock move, role: link, bindings: {"16": stock_move_id}, synonyms: [move, source move]}
+      - {key: scrapped, label: Scrapped layer, role: status, bindings: {"16": stock_move_id.scrapped}, synonyms: [scrapped, waste layer]}
+  - key: transfer
+    label: Transfer
+    domain: inventory.movements
+    base_model: stock.picking
+    synonyms: [transfer, picking, receipt, delivery order, internal transfer, shipment]
+    properties:
+      - {key: reference, label: Transfer reference, role: id, bindings: {"16": name}, synonyms: [transfer number, picking name, reference]}
+      - {key: transfer_status, label: Transfer status, role: status, bindings: {"16": state}, synonyms: [status, state]}
+      - {key: operation_code, label: Operation type, role: status, bindings: {"16": picking_type_id.code}, synonyms: [operation type, direction]}
+      - {key: operation_sequence, label: Operation sequence code, role: status, bindings: {"16": picking_type_id.sequence_code}, synonyms: [operation sequence, sequence code, operation prefix]}
+      - {key: scheduled_date, label: Scheduled date, role: time, bindings: {"16": scheduled_date}, synonyms: [planned date, scheduled date, due date]}
+      - {key: done_date, label: Done date, role: time, bindings: {"16": date_done}, synonyms: [done date, completed date, received date]}
+      - {key: partner, label: Partner, role: dimension, bindings: {"16": partner_id}, synonyms: [partner, supplier or customer]}
+      - {key: warehouse, label: Warehouse, role: dimension, bindings: {"16": picking_type_id.warehouse_id}, synonyms: [warehouse, branch, store, shop, site]}
+      - {key: source_location, label: Source location, role: dimension, bindings: {"16": location_id}, synonyms: [from location, source]}
+      - {key: destination_location, label: Destination location, role: dimension, bindings: {"16": location_dest_id}, synonyms: [to location, destination]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+  - key: scrap
+    label: Scrap
+    domain: inventory.waste
+    base_model: stock.scrap
+    synonyms: [scrap, waste, spoilage, write-off]
+    base_filter:
+      - {prop: scrap_status, op: "=", value: done}
+    properties:
+      - {key: scrap_status, label: Scrap status, role: status, bindings: {"16": state}, synonyms: [status, state]}
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item]}
+      - {key: scrap_date, label: Scrap date, role: time, bindings: {"16": date_done}, synonyms: [date, waste date, scrap date]}
+      - {key: scrap_quantity, label: Scrap quantity, role: measure, unit: qty, bindings: {"16": scrap_qty}, synonyms: [scrapped qty, waste qty, wasted quantity, scrap quantity]}
+      - {key: source_location, label: Source location, role: dimension, bindings: {"16": location_id}, synonyms: [location, from location]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+caveats:
+  stock.valuation.layer.stock_move_id.warehouse_id: >-
+    The receiving warehouse of the move that made the layer. An internal transfer makes no layer, so stock moved
+    between branches stays on the branch that received it, and a branch it moved to reads 0.
+rules:
+  - {key: usable_stock, label: Usable stock, object: stock_position, synonyms: [usable, sellable], when: [{prop: location_role, op: "not in", value: [damaged, qc_hold, expired]}]}
+  - {key: expired_lot, label: Expired lot, object: stock_position, synonyms: [expired], when: [{prop: expiry_date, op: "<", value: {param: as_of}}]}
+  - {key: near_expiry_lot, label: Near-expiry lot, object: stock_position, synonyms: [near expiry, expiring], when: [{prop: expiry_date, op: ">=", value: {param: as_of}}, {prop: expiry_date, op: "<=", value: {param: expiry_days, default: 30}}]}
+  - {key: counted_position, label: Counted position, object: stock_position, synonyms: [counted], when: [{prop: counted, op: "=", value: true}]}
+  - {key: count_matched, label: Count matched, object: stock_position, synonyms: [matched count, zero variance], when: [{prop: counted, op: "=", value: true}, {prop: count_diff, op: "=", value: 0}]}
+  - {key: incoming_move, label: Receipt, object: stock_move, synonyms: [receipt, incoming], when: [{prop: operation_code, op: "=", value: incoming}]}
+  - {key: outgoing_move, label: Delivery, object: stock_move, synonyms: [delivery, outgoing, shipment], when: [{prop: operation_code, op: "=", value: outgoing}]}
+  - {key: outgoing_layer, label: Outgoing layer, object: stock_valuation, synonyms: [sales layer, consumption layer], when: [{prop: layer_quantity, op: "<", value: 0}, {prop: scrapped, op: "=", value: false}]}
+  - {key: scrapped_layer, label: Scrapped layer, object: stock_valuation, synonyms: [waste layer], when: [{prop: scrapped, op: "=", value: true}]}
+  - {key: open_transfer, label: Open transfer, object: transfer, synonyms: [open, pending, not done], when: [{prop: transfer_status, op: "not in", value: [done, cancel]}]}
+  - {key: delivery_order, label: Delivery order, object: transfer, synonyms: [delivery order, delivery, outbound shipment], when: [{prop: operation_code, op: "=", value: outgoing}, {prop: operation_sequence, op: "=", value: OUT}]}
+metrics:
+  - {key: moved_detail_qty, label: Completed stock movement line quantity, object: stock_movement_detail, unit: qty, additivity: additive, aggregation: sum, measure: processed_quantity, time_property: movement_date, synonyms: [quantity moved by lot]}
+  - {key: on_hand_qty, label: On-hand quantity, object: stock_position, unit: qty, additivity: semi_additive, aggregation: sum, measure: quantity, over_time: last, synonyms: [on hand, stock on hand, stock level, quantity on hand]}
+  - {key: reserved_qty, label: Reserved quantity, object: stock_position, unit: qty, additivity: semi_additive, aggregation: sum, measure: reserved_quantity, over_time: last, synonyms: [reserved, reserved stock, committed stock]}
+  - {key: usable_qty, label: Usable quantity, object: stock_position, unit: qty, additivity: semi_additive, aggregation: sum, measure: quantity, filters: [usable_stock], over_time: last, synonyms: [usable stock, sellable stock, usable quantity]}
+  - {key: available_qty, label: Available quantity, object: stock_position, unit: qty, additivity: semi_additive, derived_from: "on_hand_qty - reserved_qty", over_time: last, synonyms: [available stock, free stock, available quantity]}
+  - {key: expired_qty, label: Expired quantity, object: stock_position, unit: qty, additivity: semi_additive, aggregation: sum, measure: quantity, filters: [expired_lot], over_time: last, synonyms: [expired stock, expired quantity]}
+  - {key: near_expiry_qty, label: Near-expiry quantity, object: stock_position, unit: qty, additivity: semi_additive, aggregation: sum, measure: quantity, filters: [near_expiry_lot], over_time: last, synonyms: [near expiry, expiring stock, quantity at risk of expiry]}
+  - {key: counted_lines, label: Counted lines, object: stock_position, unit: count, additivity: semi_additive, aggregation: count, filters: [counted_position], over_time: last, synonyms: [counted lines, counted positions, count lines]}
+  - {key: matched_lines, label: Matched count lines, object: stock_position, unit: count, additivity: semi_additive, aggregation: count, filters: [count_matched], over_time: last, synonyms: [matched lines, zero variance lines]}
+  - {key: count_accuracy, label: Inventory accuracy, object: stock_position, unit: pct, additivity: non_additive, derived_from: "matched_lines / counted_lines", synonyms: [inventory accuracy, count accuracy, accuracy]}
+  - {key: count_diff_qty, label: Count difference quantity, object: stock_position, unit: qty, additivity: semi_additive, aggregation: sum, measure: count_diff, filters: [counted_position], over_time: last, synonyms: [count variance, net count difference, discrepancy quantity]}
+  - {key: goods_received_qty, label: Goods received, object: stock_move, unit: qty, additivity: additive, aggregation: sum, measure: done_quantity, filters: [incoming_move], time_property: move_date, synonyms: [received quantity, receipts quantity, goods received]}
+  - {key: goods_shipped_qty, label: Goods shipped, object: stock_move, unit: qty, additivity: additive, aggregation: sum, measure: done_quantity, filters: [outgoing_move], time_property: move_date, synonyms: [shipped quantity, delivered quantity, outbound quantity]}
+  - {key: stock_value, label: Stock value, object: stock_valuation, unit: money, additivity: semi_additive, aggregation: sum, measure: remaining_value, over_time: last, synonyms: [stock value, inventory value, value on hand, cash tied up]}
+  - {key: valued_qty, label: Valued quantity, object: stock_valuation, unit: qty, additivity: semi_additive, aggregation: sum, measure: remaining_quantity, over_time: last, synonyms: [valued quantity, valued stock quantity]}
+  - {key: cogs, label: Cost of goods sold, object: stock_valuation, unit: money, additivity: additive, aggregation: sum, derived_from: "-value", filters: [outgoing_layer], time_property: layer_date, synonyms: [cogs, cost of goods sold, consumption cost]}
+  - {key: waste_value, label: Waste value, object: stock_valuation, unit: money, additivity: additive, aggregation: sum, derived_from: "-value", filters: [scrapped_layer], time_property: layer_date, synonyms: [waste value, scrap value, spoilage value]}
+  - {key: turnover, label: Stock turnover, object: stock_valuation, unit: ratio, additivity: non_additive, derived_from: "cogs / stock_value", synonyms: [turnover, stock turns, inventory turnover]}
+  - {key: days_of_inventory, label: Days of inventory, object: stock_valuation, unit: days, additivity: non_additive, derived_from: "stock_value * days / cogs", synonyms: [days of inventory, days of stock, inventory days]}
+  - {key: waste_qty, label: Waste quantity, object: scrap, unit: qty, additivity: additive, aggregation: sum, measure: scrap_quantity, time_property: scrap_date, synonyms: [waste, waste quantity, scrap quantity, spoilage quantity]}
+  - {key: open_transfer_count, label: Open transfers, object: transfer, unit: count, additivity: semi_additive, aggregation: count, filters: [open_transfer], over_time: last, time_property: scheduled_date, synonyms: [open transfers, pending transfers, open receipts]}
+  - {key: all_transfer_count, label: All transfers, object: transfer, unit: count, additivity: additive, aggregation: count, time_property: scheduled_date, synonyms: [transfers, transfer count, number of transfers, pickings, all transfers]}
+  - {key: delivery_count, label: Delivery orders, object: transfer, unit: count, additivity: additive, aggregation: count, filters: [delivery_order], time_property: scheduled_date, synonyms: [delivery orders, deliveries, delivery count, number of deliveries]}
+links:
+  - {key: detail_records_move, label: Records detail for stock move, source: stock_movement_detail, target: stock_move, via: movement, cardinality: "m:1"}
+  - {key: detail_moves_lot, label: Moves lot, source: stock_movement_detail, target: stock_lot, via: movement_lot, cardinality: "m:1"}
+  - {key: move_fulfills_sale, label: Fulfils sales order line, source: stock_move, target: sales_order_line, via: sales_line, cardinality: "m:1"}
+  - {key: position_product, label: Position to product, source: stock_position, target: product, via: product, cardinality: "m:1", synonyms: [product of stock]}
+  - {key: position_location, label: Position to location, source: stock_position, target: location, via: location, cardinality: "m:1", synonyms: [stock location]}
+  - {key: position_lot, label: Position to lot, source: stock_position, target: stock_lot, via: lot, cardinality: "m:1", synonyms: [lot of stock]}
+  - {key: position_company, label: Position to company, source: stock_position, target: company, via: company, cardinality: "m:1", synonyms: [company of stock]}
+  - {key: lot_product, label: Lot to product, source: stock_lot, target: product, via: product, cardinality: "m:1", synonyms: [product of lot]}
+  - {key: move_product, label: Move to product, source: stock_move, target: product, via: product, cardinality: "m:1", synonyms: [moved product]}
+  - {key: move_transfer, label: Move to transfer, source: stock_move, target: transfer, via: picking, cardinality: "m:1", synonyms: [transfer of move]}
+  - {key: move_purchase_line, label: Move to purchase line, source: stock_move, target: purchase_order_line, via: purchase_line, cardinality: "m:1", synonyms: [receipt of PO line]}
+  - {key: layer_product, label: Layer to product, source: stock_valuation, target: product, via: product, cardinality: "m:1", synonyms: [valued product]}
+  - {key: layer_source_move, label: Layer to move, source: stock_valuation, target: stock_move, via: layer_move, cardinality: "m:1", synonyms: [layer source move]}
+  - {key: scrap_product, label: Scrap to product, source: scrap, target: product, via: product, cardinality: "m:1", synonyms: [scrapped product]}
+  - {key: transfer_partner, label: Transfer to partner, source: transfer, target: partner, via: partner, cardinality: "m:1", synonyms: [transfer partner]}

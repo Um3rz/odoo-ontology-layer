@@ -1,0 +1,1835 @@
+{
+  "accounting_reconciliation": {
+    "base_model": "account.partial.reconcile",
+    "columns": [
+      {
+        "name": "debit_document",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "credit_document",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "debit_payment",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "credit_payment",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "matched_amount",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "accounting_reconciliation",
+    "label": "Accounting reconciliation entry",
+    "spec_hash": "7c86ed576d40576fefd4454c328701ee1374cc9ac5dabf5b9c3d38f97dcb56c9",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"j1\".\"move_id\" AS \"debit_document\",\n  \"j2\".\"move_id\" AS \"credit_document\",\n  \"j3\".\"payment_id\" AS \"debit_payment\",\n  \"j4\".\"payment_id\" AS \"credit_payment\",\n  \"b\".\"amount\" AS \"matched_amount\"\nFROM \"account_partial_reconcile\" AS \"b\"\nLEFT JOIN \"account_move_line\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"debit_move_id\"\nLEFT JOIN \"account_move_line\" AS \"j2\" ON \"j2\".\"id\" = \"b\".\"credit_move_id\"\nLEFT JOIN \"account_move\" AS \"j3\" ON \"j3\".\"id\" = \"j1\".\"move_id\"\nLEFT JOIN \"account_move\" AS \"j4\" ON \"j4\".\"id\" = \"j2\".\"move_id\""
+  },
+  "billing_document": {
+    "base_model": "account.move",
+    "columns": [
+      {
+        "name": "document_number",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "document_state",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "document_type",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "billing_date",
+        "pii": false,
+        "role": "time",
+        "type": "date",
+        "unit": null
+      },
+      {
+        "name": "due_date",
+        "pii": false,
+        "role": "time",
+        "type": "date",
+        "unit": null
+      },
+      {
+        "name": "billing_partner",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "billing_company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company_currency",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "settlement_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "untaxed_signed",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "residual_signed",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "billing_document",
+    "label": "Posted invoice, bill or credit note",
+    "spec_hash": "ae2c5cf70f85c654ae884830cd5182bd10b76d9b0963fb8548aea16cd6de027f",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"document_number\",\n  \"b\".\"state\" AS \"document_state\",\n  \"b\".\"move_type\" AS \"document_type\",\n  \"b\".\"invoice_date\" AS \"billing_date\",\n  \"b\".\"invoice_date_due\" AS \"due_date\",\n  \"b\".\"partner_id\" AS \"billing_partner\",\n  \"b\".\"company_id\" AS \"billing_company\",\n  \"j1\".\"currency_id\" AS \"company_currency\",\n  \"b\".\"payment_state\" AS \"settlement_status\",\n  \"b\".\"amount_untaxed_signed\" AS \"untaxed_signed\",\n  \"b\".\"amount_residual_signed\" AS \"residual_signed\"\nFROM \"account_move\" AS \"b\"\nLEFT JOIN \"res_company\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"company_id\"\nWHERE (\"b\".\"state\" = 'posted') AND (\"b\".\"move_type\" IN ('out_invoice', 'out_refund', 'in_invoice', 'in_refund'))"
+  },
+  "billing_line": {
+    "base_model": "account.move.line",
+    "columns": [
+      {
+        "name": "line_document",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "line_document_state",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "line_document_type",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "line_display_type",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "billed_product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "billed_purchase_line",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "billing_line",
+    "label": "Posted invoice or bill line",
+    "spec_hash": "88276a3539acd7570708dc7b2e3b17a6d99047a9f20fc6d240bc31c9b02c23b6",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"move_id\" AS \"line_document\",\n  \"j1\".\"state\" AS \"line_document_state\",\n  \"j1\".\"move_type\" AS \"line_document_type\",\n  \"b\".\"display_type\" AS \"line_display_type\",\n  \"b\".\"product_id\" AS \"billed_product\",\n  \"b\".\"purchase_line_id\" AS \"billed_purchase_line\"\nFROM \"account_move_line\" AS \"b\"\nLEFT JOIN \"account_move\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"move_id\"\nWHERE (\"j1\".\"state\" = 'posted') AND (\"j1\".\"move_type\" IN ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')) AND (\"b\".\"display_type\" = 'product')"
+  },
+  "company": {
+    "base_model": "res.company",
+    "columns": [
+      {
+        "name": "name",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "parent",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "company",
+    "label": "Company",
+    "spec_hash": "d66da8874e59b4df3e74077dd01506cb880aee6795ea5cb126a57c8a7ea535fd",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"name\",\n  \"b\".\"parent_id\" AS \"parent\"\nFROM \"res_company\" AS \"b\""
+  },
+  "crm_opportunity": {
+    "base_model": "crm.lead",
+    "columns": [
+      {
+        "name": "opportunity_name",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "lead_kind",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "opportunity_active",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      },
+      {
+        "name": "opportunity_stage",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "opportunity_team",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "opportunity_contact",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "opportunity_company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "opportunity_created",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "expected_close",
+        "pii": false,
+        "role": "time",
+        "type": "date",
+        "unit": null
+      },
+      {
+        "name": "expected_value",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "crm_opportunity",
+    "label": "CRM opportunity",
+    "spec_hash": "0d32657ba69eee87a0a9e684a6bde217d7dc70e5dd0285acd5368a2c36c9dfb2",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"opportunity_name\",\n  \"b\".\"type\" AS \"lead_kind\",\n  \"b\".\"active\" AS \"opportunity_active\",\n  \"b\".\"stage_id\" AS \"opportunity_stage\",\n  \"b\".\"team_id\" AS \"opportunity_team\",\n  \"b\".\"partner_id\" AS \"opportunity_contact\",\n  \"b\".\"company_id\" AS \"opportunity_company\",\n  \"b\".\"create_date\" AS \"opportunity_created\",\n  \"b\".\"date_deadline\" AS \"expected_close\",\n  \"b\".\"expected_revenue\" AS \"expected_value\"\nFROM \"crm_lead\" AS \"b\"\nWHERE (\"b\".\"type\" = 'opportunity')"
+  },
+  "location": {
+    "base_model": "stock.location",
+    "columns": [
+      {
+        "name": "location_name",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "usage",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "warehouse",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "parent",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "scrap_flag",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      },
+      {
+        "name": "return_flag",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "location",
+    "label": "Stock location",
+    "spec_hash": "33cc8eca09509c3337e20e596ceb025bd352eb61c21d5e9ff90b4dd45e0ba721",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"complete_name\" AS \"location_name\",\n  \"b\".\"usage\" AS \"usage\",\n  \"b\".\"warehouse_id\" AS \"warehouse\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"location_id\" AS \"parent\",\n  \"b\".\"scrap_location\" AS \"scrap_flag\",\n  \"b\".\"return_location\" AS \"return_flag\"\nFROM \"stock_location\" AS \"b\""
+  },
+  "partner": {
+    "base_model": "res.partner",
+    "columns": [
+      {
+        "name": "name",
+        "pii": true,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "customer_rank",
+        "pii": false,
+        "role": "status",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "supplier_rank",
+        "pii": false,
+        "role": "status",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "employee",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "partner",
+    "label": "Contact",
+    "spec_hash": "0a2a30b09be61472dba3fcb0423377186fec61ad31ab72c8143acfe3e00e9469",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"name\",\n  \"b\".\"customer_rank\" AS \"customer_rank\",\n  \"b\".\"supplier_rank\" AS \"supplier_rank\",\n  \"b\".\"employee\" AS \"employee\"\nFROM \"res_partner\" AS \"b\""
+  },
+  "pos_order": {
+    "base_model": "pos.order",
+    "columns": [
+      {
+        "name": "receipt_number",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "order_time",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "session",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "till",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "customer",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "order_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "total",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "pos_order",
+    "label": "POS order",
+    "spec_hash": "fc0853605b82bbb5ec97b99a185ffa842bea60930d0c4c63ae0c190c54f07c76",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"receipt_number\",\n  \"b\".\"date_order\" AS \"order_time\",\n  \"b\".\"session_id\" AS \"session\",\n  \"j1\".\"config_id\" AS \"till\",\n  \"b\".\"partner_id\" AS \"customer\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"state\" AS \"order_status\",\n  \"b\".\"amount_total\" AS \"total\"\nFROM \"pos_order\" AS \"b\"\nLEFT JOIN \"pos_session\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"session_id\"\nWHERE (\"b\".\"state\" IN ('paid', 'done', 'invoiced'))"
+  },
+  "pos_order_line": {
+    "base_model": "pos.order.line",
+    "columns": [
+      {
+        "name": "order",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "order_time",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "till",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "session",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "order_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "unit_price",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "net_amount",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "gross_amount",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "cost",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "pos_order_line",
+    "label": "POS order line",
+    "spec_hash": "2b954590e039f4806ebe0696889eef44aa96346fa0940af7e13442b6e96c7c20",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"order_id\" AS \"order\",\n  \"b\".\"product_id\" AS \"product\",\n  \"j1\".\"date_order\" AS \"order_time\",\n  \"j2\".\"config_id\" AS \"till\",\n  \"j1\".\"session_id\" AS \"session\",\n  \"j1\".\"state\" AS \"order_status\",\n  \"b\".\"qty\" AS \"quantity\",\n  \"b\".\"price_unit\" AS \"unit_price\",\n  \"b\".\"price_subtotal\" AS \"net_amount\",\n  \"b\".\"price_subtotal_incl\" AS \"gross_amount\",\n  \"b\".\"total_cost\" AS \"cost\"\nFROM \"pos_order_line\" AS \"b\"\nLEFT JOIN \"pos_order\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"order_id\"\nLEFT JOIN \"pos_session\" AS \"j2\" ON \"j2\".\"id\" = \"j1\".\"session_id\"\nWHERE (\"j1\".\"state\" IN ('paid', 'done', 'invoiced'))"
+  },
+  "pos_session": {
+    "base_model": "pos.session",
+    "columns": [
+      {
+        "name": "session_name",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "till",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "opened_at",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "closed_at",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "session_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "cashier",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "pos_session",
+    "label": "POS session",
+    "spec_hash": "279ed305de49db7fb0cbd4d28c3d33a7d0f7d390a8b68e466394d42f4b06a3fc",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"session_name\",\n  \"b\".\"config_id\" AS \"till\",\n  \"b\".\"start_at\" AS \"opened_at\",\n  \"b\".\"stop_at\" AS \"closed_at\",\n  \"b\".\"state\" AS \"session_status\",\n  \"b\".\"user_id\" AS \"cashier\"\nFROM \"pos_session\" AS \"b\""
+  },
+  "posted_payment": {
+    "base_model": "account.payment",
+    "columns": [
+      {
+        "name": "payment_posting_state",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "paid_date",
+        "pii": false,
+        "role": "time",
+        "type": "date",
+        "unit": null
+      },
+      {
+        "name": "payment_direction",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "payment_partner_type",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "payment_partner",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "payment_company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "payment_currency",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "payment_amount",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "posted_payment",
+    "label": "Posted payment",
+    "spec_hash": "7c720bf52614466ae97003830dc464c184d25ffe626f1dd730ce86fcef067d6b",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"j1\".\"state\" AS \"payment_posting_state\",\n  \"j1\".\"date\" AS \"paid_date\",\n  \"b\".\"payment_type\" AS \"payment_direction\",\n  \"b\".\"partner_type\" AS \"payment_partner_type\",\n  \"b\".\"partner_id\" AS \"payment_partner\",\n  \"j1\".\"company_id\" AS \"payment_company\",\n  \"b\".\"currency_id\" AS \"payment_currency\",\n  \"b\".\"amount\" AS \"payment_amount\"\nFROM \"account_payment\" AS \"b\"\nLEFT JOIN \"account_move\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"move_id\"\nWHERE (\"j1\".\"state\" = 'posted')"
+  },
+  "product": {
+    "base_model": "product.product",
+    "columns": [
+      {
+        "name": "code",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "name",
+        "pii": false,
+        "role": "dimension",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "category",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product_type",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "uom",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "sales_price",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "product",
+    "label": "Product",
+    "spec_hash": "3882d6548a099bafb6b8346ccd57e4c2c2ff309d24df31b6dd47f07a4b5afe2c",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"default_code\" AS \"code\",\n  \"j1\".\"name\" AS \"name\",\n  \"j1\".\"categ_id\" AS \"category\",\n  \"j1\".\"type\" AS \"product_type\",\n  \"j1\".\"uom_id\" AS \"uom\",\n  \"j1\".\"list_price\" AS \"sales_price\"\nFROM \"product_product\" AS \"b\"\nLEFT JOIN \"product_template\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"product_tmpl_id\"\nWHERE (\"j1\".\"type\" = 'product')"
+  },
+  "product_category": {
+    "base_model": "product.category",
+    "columns": [
+      {
+        "name": "name",
+        "pii": false,
+        "role": "dimension",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "full_name",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "parent",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "product_category",
+    "label": "Product category",
+    "spec_hash": "6af0aad8c70f3056c6958375ec25a104a9759a5530036a927ea68af0de33013f",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"name\",\n  \"b\".\"complete_name\" AS \"full_name\",\n  \"b\".\"parent_id\" AS \"parent\"\nFROM \"product_category\" AS \"b\""
+  },
+  "purchase_order": {
+    "base_model": "purchase.order",
+    "columns": [
+      {
+        "name": "po_number",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "supplier",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "order_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "approval_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "expected_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "first_receipt_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "po_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "receipt_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "buyer",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "purchase_order",
+    "label": "Purchase order",
+    "spec_hash": "41cfa8ee816a88d5fe16beffd91271fb019b5891bed31d7e9776a06cccc55889",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"po_number\",\n  \"b\".\"partner_id\" AS \"supplier\",\n  \"b\".\"date_order\" AS \"order_date\",\n  \"b\".\"date_approve\" AS \"approval_date\",\n  \"b\".\"date_planned\" AS \"expected_date\",\n  \"b\".\"effective_date\" AS \"first_receipt_date\",\n  \"b\".\"state\" AS \"po_status\",\n  \"b\".\"receipt_status\" AS \"receipt_status\",\n  \"b\".\"user_id\" AS \"buyer\",\n  \"b\".\"company_id\" AS \"company\"\nFROM \"purchase_order\" AS \"b\""
+  },
+  "purchase_order_line": {
+    "base_model": "purchase.order.line",
+    "columns": [
+      {
+        "name": "order",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "supplier",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "line_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "expected_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "confirmation_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "purchase_currency",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "qty_ordered",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "qty_received",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "unit_price",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "line_value",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "purchase_order_line",
+    "label": "Purchase order line",
+    "spec_hash": "70e84cfd59a146b2c3acbcb40763d4fdfef7b8ba8a52b3acb53adf55563202d6",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"order_id\" AS \"order\",\n  \"b\".\"product_id\" AS \"product\",\n  \"b\".\"partner_id\" AS \"supplier\",\n  \"b\".\"state\" AS \"line_status\",\n  \"b\".\"date_planned\" AS \"expected_date\",\n  \"j1\".\"date_approve\" AS \"confirmation_date\",\n  \"j1\".\"currency_id\" AS \"purchase_currency\",\n  \"b\".\"product_qty\" AS \"qty_ordered\",\n  \"b\".\"qty_received\" AS \"qty_received\",\n  \"b\".\"price_unit\" AS \"unit_price\",\n  \"b\".\"price_subtotal\" AS \"line_value\",\n  \"b\".\"company_id\" AS \"company\"\nFROM \"purchase_order_line\" AS \"b\"\nLEFT JOIN \"purchase_order\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"order_id\"\nWHERE (\"b\".\"state\" <> 'cancel')"
+  },
+  "sales_order": {
+    "base_model": "sale.order",
+    "columns": [
+      {
+        "name": "order_number",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "order_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "customer",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "salesperson",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "sales_team",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "warehouse",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "order_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "total",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "untaxed_total",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "sales_order",
+    "label": "Sales order",
+    "spec_hash": "0142f6460e82113c99ca80869f394c9665bf83eeb11a1013cd16a492d6293463",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"order_number\",\n  \"b\".\"date_order\" AS \"order_date\",\n  \"b\".\"partner_id\" AS \"customer\",\n  \"b\".\"user_id\" AS \"salesperson\",\n  \"b\".\"team_id\" AS \"sales_team\",\n  \"b\".\"warehouse_id\" AS \"warehouse\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"state\" AS \"order_status\",\n  \"b\".\"amount_total\" AS \"total\",\n  \"b\".\"amount_untaxed\" AS \"untaxed_total\"\nFROM \"sale_order\" AS \"b\"\nWHERE (\"b\".\"state\" IN ('sale', 'done'))"
+  },
+  "sales_order_line": {
+    "base_model": "sale.order.line",
+    "columns": [
+      {
+        "name": "order",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product_category",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "customer",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "sales_team",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "warehouse",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "currency",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "ordered_uom",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "order_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "order_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "price",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "net_amount",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "tax_included_amount",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "unit_cost",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "sales_order_line",
+    "label": "Sales order line",
+    "spec_hash": "ea83cbaf0645da9407bc45a845f52147ef2a91bbfaee7b29701784bafdb50081",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"order_id\" AS \"order\",\n  \"b\".\"product_id\" AS \"product\",\n  \"j3\".\"categ_id\" AS \"product_category\",\n  \"b\".\"order_partner_id\" AS \"customer\",\n  \"j1\".\"team_id\" AS \"sales_team\",\n  \"j1\".\"warehouse_id\" AS \"warehouse\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"currency_id\" AS \"currency\",\n  \"b\".\"product_uom\" AS \"ordered_uom\",\n  \"j1\".\"date_order\" AS \"order_date\",\n  \"j1\".\"state\" AS \"order_status\",\n  \"b\".\"product_uom_qty\" AS \"quantity\",\n  \"b\".\"price_unit\" AS \"price\",\n  \"b\".\"price_subtotal\" AS \"net_amount\",\n  \"b\".\"price_total\" AS \"tax_included_amount\",\n  \"b\".\"purchase_price\" AS \"unit_cost\"\nFROM \"sale_order_line\" AS \"b\"\nLEFT JOIN \"sale_order\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"order_id\"\nLEFT JOIN \"product_product\" AS \"j2\" ON \"j2\".\"id\" = \"b\".\"product_id\"\nLEFT JOIN \"product_template\" AS \"j3\" ON \"j3\".\"id\" = \"j2\".\"product_tmpl_id\"\nWHERE (\"j1\".\"state\" IN ('sale', 'done'))"
+  },
+  "scrap": {
+    "base_model": "stock.scrap",
+    "columns": [
+      {
+        "name": "scrap_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "scrap_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "scrap_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "source_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "scrap",
+    "label": "Scrap",
+    "spec_hash": "93ecaec808f0f18d81b783b3fd84cf4df567a56f437a9759d4ad5d5317b923fb",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"state\" AS \"scrap_status\",\n  \"b\".\"product_id\" AS \"product\",\n  \"b\".\"date_done\" AS \"scrap_date\",\n  \"b\".\"scrap_qty\" AS \"scrap_quantity\",\n  \"b\".\"location_id\" AS \"source_location\",\n  \"b\".\"company_id\" AS \"company\"\nFROM \"stock_scrap\" AS \"b\"\nWHERE (\"b\".\"state\" = 'done')"
+  },
+  "stock_lot": {
+    "base_model": "stock.lot",
+    "columns": [
+      {
+        "name": "lot_number",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "expiry_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "best_before",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "removal_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "alert_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "stock_lot",
+    "label": "Lot",
+    "spec_hash": "e77b84d2c74822bb8b6e2cbed15da40c6452cca69849bc61c2a5614fac4a61e5",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"lot_number\",\n  \"b\".\"product_id\" AS \"product\",\n  \"b\".\"expiration_date\" AS \"expiry_date\",\n  \"b\".\"use_date\" AS \"best_before\",\n  \"b\".\"removal_date\" AS \"removal_date\",\n  \"b\".\"alert_date\" AS \"alert_date\"\nFROM \"stock_lot\" AS \"b\""
+  },
+  "stock_move": {
+    "base_model": "stock.move",
+    "columns": [
+      {
+        "name": "move_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "move_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "operation_code",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "source_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "destination_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "done_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "demand_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "inventory_adjustment",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      },
+      {
+        "name": "scrapped",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      },
+      {
+        "name": "picking",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "purchase_line",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "sales_line",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "operation_type_ref",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "stock_move",
+    "label": "Stock move",
+    "spec_hash": "2d70443d8ed6b5f95a111b272f79efa63cef75cdd93d7ee588728ac4d0ee22e9",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"state\" AS \"move_status\",\n  \"b\".\"date\" AS \"move_date\",\n  \"b\".\"product_id\" AS \"product\",\n  \"j1\".\"code\" AS \"operation_code\",\n  \"b\".\"location_id\" AS \"source_location\",\n  \"b\".\"location_dest_id\" AS \"destination_location\",\n  \"b\".\"quantity_done\" AS \"done_quantity\",\n  \"b\".\"product_uom_qty\" AS \"demand_quantity\",\n  \"b\".\"is_inventory\" AS \"inventory_adjustment\",\n  \"b\".\"scrapped\" AS \"scrapped\",\n  \"b\".\"picking_id\" AS \"picking\",\n  \"b\".\"purchase_line_id\" AS \"purchase_line\",\n  \"b\".\"sale_line_id\" AS \"sales_line\",\n  \"b\".\"picking_type_id\" AS \"operation_type_ref\"\nFROM \"stock_move\" AS \"b\"\nLEFT JOIN \"stock_picking_type\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"picking_type_id\"\nWHERE (\"b\".\"state\" = 'done')"
+  },
+  "stock_movement_detail": {
+    "base_model": "stock.move.line",
+    "columns": [
+      {
+        "name": "detail_state",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "movement_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "movement",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "movement_product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "movement_lot",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "movement_from",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "movement_to",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "movement_uom",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "processed_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "stock_movement_detail",
+    "label": "Completed stock move line",
+    "spec_hash": "926bc235241b3647c9577f0aa7e4d338b58af1866990b968d728239d5e45d6d8",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"j1\".\"state\" AS \"detail_state\",\n  \"b\".\"date\" AS \"movement_date\",\n  \"b\".\"move_id\" AS \"movement\",\n  \"b\".\"product_id\" AS \"movement_product\",\n  \"b\".\"lot_id\" AS \"movement_lot\",\n  \"b\".\"location_id\" AS \"movement_from\",\n  \"b\".\"location_dest_id\" AS \"movement_to\",\n  \"b\".\"product_uom_id\" AS \"movement_uom\",\n  \"b\".\"qty_done\" AS \"processed_quantity\"\nFROM \"stock_move_line\" AS \"b\"\nLEFT JOIN \"stock_move\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"move_id\"\nWHERE (\"j1\".\"state\" = 'done')"
+  },
+  "stock_position": {
+    "base_model": "stock.quant",
+    "columns": [
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product_category",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "stock_uom",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "location_usage",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "location_role",
+        "pii": false,
+        "role": "dimension",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "warehouse",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "lot",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "expiry_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "received_on",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "counted",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      },
+      {
+        "name": "quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "reserved_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "count_diff",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "stock_position",
+    "label": "Stock position",
+    "spec_hash": "68b01ce264b067ab7315c276c050bf163186469922377beb573b86e541a09a62",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"product_id\" AS \"product\",\n  \"j3\".\"categ_id\" AS \"product_category\",\n  \"j3\".\"uom_id\" AS \"stock_uom\",\n  \"b\".\"location_id\" AS \"location\",\n  \"j1\".\"usage\" AS \"location_usage\",\n  \"j4\".\"role\" AS \"location_role\",\n  \"j1\".\"warehouse_id\" AS \"warehouse\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"lot_id\" AS \"lot\",\n  \"j5\".\"expiration_date\" AS \"expiry_date\",\n  \"b\".\"in_date\" AS \"received_on\",\n  \"b\".\"inventory_quantity_set\" AS \"counted\",\n  \"b\".\"quantity\" AS \"quantity\",\n  \"b\".\"reserved_quantity\" AS \"reserved_quantity\",\n  \"b\".\"inventory_diff_quantity\" AS \"count_diff\"\nFROM \"stock_quant\" AS \"b\"\nLEFT JOIN \"stock_location\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"location_id\"\nLEFT JOIN \"product_product\" AS \"j2\" ON \"j2\".\"id\" = \"b\".\"product_id\"\nLEFT JOIN \"product_template\" AS \"j3\" ON \"j3\".\"id\" = \"j2\".\"product_tmpl_id\"\nLEFT JOIN \"onto_org_map\" AS \"j4\" ON \"j4\".\"location_id\" = \"b\".\"location_id\"\nLEFT JOIN \"stock_lot\" AS \"j5\" ON \"j5\".\"id\" = \"b\".\"lot_id\"\nWHERE (\"j1\".\"usage\" IN ('internal', 'transit'))"
+  },
+  "stock_valuation": {
+    "base_model": "stock.valuation.layer",
+    "columns": [
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "layer_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "layer_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "value",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "remaining_quantity",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "remaining_value",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "unit_cost",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "layer_move",
+        "pii": false,
+        "role": "link",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "scrapped",
+        "pii": false,
+        "role": "status",
+        "type": "boolean",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "stock_valuation",
+    "label": "Stock valuation layer",
+    "spec_hash": "2c531563484b807cf0152c1f5092654bf99d593551075fc20c64117796c7e56e",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"product_id\" AS \"product\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"create_date\" AS \"layer_date\",\n  \"b\".\"quantity\" AS \"layer_quantity\",\n  \"b\".\"value\" AS \"value\",\n  \"b\".\"remaining_qty\" AS \"remaining_quantity\",\n  \"b\".\"remaining_value\" AS \"remaining_value\",\n  \"b\".\"unit_cost\" AS \"unit_cost\",\n  \"b\".\"stock_move_id\" AS \"layer_move\",\n  \"j1\".\"scrapped\" AS \"scrapped\"\nFROM \"stock_valuation_layer\" AS \"b\"\nLEFT JOIN \"stock_move\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"stock_move_id\""
+  },
+  "supplier_info": {
+    "base_model": "product.supplierinfo",
+    "columns": [
+      {
+        "name": "supplier",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product_template",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "product",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "min_order_qty",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "qty"
+      },
+      {
+        "name": "supplier_price",
+        "pii": false,
+        "role": "measure",
+        "type": "float",
+        "unit": "money"
+      },
+      {
+        "name": "lead_time_days",
+        "pii": false,
+        "role": "measure",
+        "type": "integer",
+        "unit": "days"
+      },
+      {
+        "name": "valid_from",
+        "pii": false,
+        "role": "time",
+        "type": "date",
+        "unit": null
+      },
+      {
+        "name": "valid_to",
+        "pii": false,
+        "role": "time",
+        "type": "date",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "supplier_info",
+    "label": "Supplier price and lead time",
+    "spec_hash": "5c046aa75064151cef6e4d96a65ba0cb897cc6cf162078d39b0e7e44ad4ca885",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"partner_id\" AS \"supplier\",\n  \"b\".\"product_tmpl_id\" AS \"product_template\",\n  \"b\".\"product_id\" AS \"product\",\n  \"b\".\"min_qty\" AS \"min_order_qty\",\n  \"b\".\"price\" AS \"supplier_price\",\n  \"b\".\"delay\" AS \"lead_time_days\",\n  \"b\".\"date_start\" AS \"valid_from\",\n  \"b\".\"date_end\" AS \"valid_to\",\n  \"b\".\"company_id\" AS \"company\"\nFROM \"product_supplierinfo\" AS \"b\""
+  },
+  "transfer": {
+    "base_model": "stock.picking",
+    "columns": [
+      {
+        "name": "reference",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "transfer_status",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "operation_code",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "operation_sequence",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "scheduled_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "done_date",
+        "pii": false,
+        "role": "time",
+        "type": "datetime",
+        "unit": null
+      },
+      {
+        "name": "partner",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "warehouse",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "source_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "destination_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "transfer",
+    "label": "Transfer",
+    "spec_hash": "b47cdd879f4be7fac50f0e1274ba274726cc4ecb91263d342183f307b323b879",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"reference\",\n  \"b\".\"state\" AS \"transfer_status\",\n  \"j1\".\"code\" AS \"operation_code\",\n  \"j1\".\"sequence_code\" AS \"operation_sequence\",\n  \"b\".\"scheduled_date\" AS \"scheduled_date\",\n  \"b\".\"date_done\" AS \"done_date\",\n  \"b\".\"partner_id\" AS \"partner\",\n  \"j1\".\"warehouse_id\" AS \"warehouse\",\n  \"b\".\"location_id\" AS \"source_location\",\n  \"b\".\"location_dest_id\" AS \"destination_location\",\n  \"b\".\"company_id\" AS \"company\"\nFROM \"stock_picking\" AS \"b\"\nLEFT JOIN \"stock_picking_type\" AS \"j1\" ON \"j1\".\"id\" = \"b\".\"picking_type_id\""
+  },
+  "warehouse": {
+    "base_model": "stock.warehouse",
+    "columns": [
+      {
+        "name": "warehouse_name",
+        "pii": false,
+        "role": "id",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "warehouse_code",
+        "pii": false,
+        "role": "dimension",
+        "type": "char",
+        "unit": null
+      },
+      {
+        "name": "company",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "main_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "view_location",
+        "pii": false,
+        "role": "dimension",
+        "type": "integer",
+        "unit": null
+      },
+      {
+        "name": "reception_steps",
+        "pii": false,
+        "role": "status",
+        "type": "char",
+        "unit": null
+      }
+    ],
+    "engine_only": false,
+    "group_xmlids": [],
+    "key": "warehouse",
+    "label": "Warehouse",
+    "spec_hash": "1db1459a4d1f1d919072ca400ac87221d5e85c3ff223267796cd0c12955749a3",
+    "sql": "SELECT\n  \"b\".\"id\" AS \"_onto_id\",\n  \"b\".\"name\" AS \"warehouse_name\",\n  \"b\".\"code\" AS \"warehouse_code\",\n  \"b\".\"company_id\" AS \"company\",\n  \"b\".\"lot_stock_id\" AS \"main_location\",\n  \"b\".\"view_location_id\" AS \"view_location\",\n  \"b\".\"reception_steps\" AS \"reception_steps\"\nFROM \"stock_warehouse\" AS \"b\""
+  }
+}

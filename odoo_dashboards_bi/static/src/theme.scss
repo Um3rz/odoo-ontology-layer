@@ -1,0 +1,33 @@
+.o_native_bi_theme {
+    --bi-text: var(--g-text, var(--od-text, #262b38));
+    --bi-muted: var(--g-muted, var(--od-muted, #596579));
+    --bi-accent: var(--g-primary, var(--od-primary, #5546c5));
+    --bi-line: var(--g-line, var(--od-border, #dce0e9));
+    --bi-tint: var(--g-primary-soft, var(--od-tint, rgba(85, 70, 197, .1)));
+    --bi-surface: var(--g-glass-bg-strong, var(--od-surface, #fff));
+    --bi-raised: var(--g-chip, var(--od-raised, #f5f6fb));
+    --bi-radius: var(--g-r-card, var(--od-radius-card, 16px));
+    --bi-warning: var(--od-warning-fg, #8a5717);
+    color: var(--bi-text);
+    font-family: var(--g-font, "Instrument Sans", system-ui, sans-serif);
+
+    h1, h2, h3, h4, h5, h6 {
+        color: inherit;
+        font-family: var(--g-font-head, "Schibsted Grotesk", system-ui, sans-serif);
+    }
+    .text-muted { color: var(--bi-muted) !important; }
+}
+
+// Dark: the home theme puts html.o_od_dark on the root. Its --g-* tokens live on home elements only, so BI screens
+// get their own dark values here instead of falling back to light ones.
+html.o_od_dark .o_native_bi_theme {
+    --bi-text: #e6e8ef;
+    --bi-muted: #a3a9b6;
+    --bi-accent: #9b91ff;
+    --bi-line: rgba(255, 255, 255, .12);
+    --bi-tint: rgba(155, 145, 255, .16);
+    --bi-surface: #1b1d26;
+    --bi-raised: rgba(255, 255, 255, .05);
+    --bi-warning: #e3a857;
+    color-scheme: dark;
+}

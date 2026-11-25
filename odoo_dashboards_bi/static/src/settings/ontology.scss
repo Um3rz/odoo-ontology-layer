@@ -1,0 +1,187 @@
+.o_native_bi_ontology {
+    background: var(--od-page, #f4f5f8);
+
+    // Metrics, objects, relationships and draft proposals: a gallery of cards across the full width.
+    // Every card in a row stretches to the row; the content is clamped so rows come out the same height.
+    .o_native_bi_gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(#{"min(100%, 21rem)"}, 1fr));
+        gap: .75rem;
+        align-items: stretch;
+        > .o_native_bi_surface { display: flex; flex-direction: column; min-block-size: 8.5rem; min-inline-size: 0; }
+    }
+    .o_native_bi_group { margin-block-end: 1.5rem; }
+    .o_native_bi_group_title {
+        font-size: 1rem;
+        font-weight: 700;
+        padding-block-end: .4rem;
+        margin-block-end: .75rem;
+        border-block-end: 1px solid var(--bi-line);
+    }
+    // Properties, rules and metrics, grouped by the object they extend.
+    .o_native_bi_counter { display: inline-block; margin-inline-end: 1.25rem; }
+    .o_native_bi_object_head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+        margin-block-end: .6rem;
+    }
+    .o_native_bi_card_head { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .o_native_bi_card_title { min-inline-size: 0; h3 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+    .o_native_bi_pill {
+        display: inline-block;
+        padding: .05rem .45rem;
+        border: 1px solid var(--bi-line);
+        border-radius: 999px;
+        background: var(--bi-tint);
+        font-size: .75rem;
+        font-weight: 600;
+        vertical-align: middle;
+    }
+    .o_native_bi_card_actions { display: flex; flex-shrink: 0; gap: .4rem; }
+    .o_native_bi_entry_title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_native_bi_card_text {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .o_native_bi_card_more { margin-block-start: auto; padding-block-start: .5rem; }
+    .o_native_bi_icon_button { color: var(--bi-muted); vertical-align: baseline; &:hover { color: var(--bi-accent); } }
+    .o_native_bi_busy { display: flex; align-items: center; color: var(--bi-muted); margin-block-end: 1rem; }
+
+    .o_native_bi_module {
+        display: inline-flex;
+        align-items: center;
+        padding: .3rem .6rem;
+        border: 1px solid var(--bi-line);
+        border-radius: 999px;
+        cursor: pointer;
+        &.o_native_bi_module_on { background: var(--bi-tint); border-color: var(--bi-accent); }
+    }
+
+    .o_native_bi_surface,
+    .o_native_bi_map {
+        background: var(--bi-surface);
+        border: 1px solid var(--bi-line);
+        border-radius: var(--bi-radius);
+        color: var(--bi-text);
+    }
+
+    .nav-tabs { border-color: var(--bi-line); gap: .25rem; }
+    .nav-tabs .nav-link {
+        color: var(--bi-muted);
+        border-color: transparent;
+        background: transparent;
+        &.active, &:hover { color: var(--bi-text); background: var(--bi-tint); border-color: var(--bi-line); }
+    }
+
+    .form-select, .form-control {
+        background-color: var(--bi-surface);
+        border-color: var(--bi-line);
+        color: var(--bi-text);
+        &::placeholder { color: var(--bi-muted); }
+    }
+
+    .o_native_bi_release {
+        display: grid;
+        grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr);
+        gap: .3rem 1rem;
+        dd { margin: 0; overflow-wrap: anywhere; }
+    }
+
+    .o_native_bi_ontology_search { max-inline-size: 26rem; }
+    summary { cursor: pointer; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+    .o_native_bi_map_controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: .75rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--bi-line);
+        label span { display: block; color: var(--bi-muted); font-size: .82rem; margin-bottom: .25rem; }
+    }
+
+    .o_native_bi_view_switch {
+        display: flex;
+        gap: .2rem;
+        padding: .2rem;
+        border-radius: .75rem;
+        background: var(--bi-raised);
+        button {
+            border: 0;
+            border-radius: .55rem;
+            background: transparent;
+            color: var(--bi-muted);
+            padding: .35rem .65rem;
+            &[aria-pressed="true"] { color: var(--bi-text); background: var(--bi-tint); }
+        }
+    }
+
+    .o_native_bi_map_body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .o_native_bi_map_canvas { flex: 1 1 28rem; min-inline-size: 0; block-size: 30rem; }
+    .o_native_bi_simple_map { flex: 1 1 22rem; min-inline-size: 0; }
+    .o_native_bi_map_detail {
+        flex: 0 1 15rem;
+        padding: 1rem;
+        border: 1px solid var(--bi-line);
+        border-radius: var(--bi-radius);
+        background: var(--bi-raised);
+        h3 { font-size: 1.1rem; }
+        p { color: var(--bi-muted); }
+    }
+
+    .o_native_bi_simple_map details {
+        padding: .55rem .65rem;
+        border: 1px solid var(--bi-line);
+        border-radius: .7rem;
+        margin-block-end: .4rem;
+        summary { font-weight: 600; }
+        ul { margin: .4rem 0; padding-inline-start: 1.25rem; }
+        small { margin-inline-start: .35rem; color: var(--bi-muted); }
+    }
+    .o_native_bi_taxonomy_branch { margin-block-start: .5rem; padding-inline-start: .65rem; }
+    .o_native_bi_empty_map { color: var(--bi-muted); }
+}
+
+.o_native_bi_ontology {
+    .o_native_bi_entry_title { font-size: 1rem; font-weight: 700; margin: 0 0 .35rem; }
+    .o_native_bi_entry details > summary { color: var(--bi-muted); }
+}
+
+html.o_od_dark .o_native_bi_ontology {
+    background: #111318;
+
+    // Another stylesheet lightens these surfaces in dark mode; BI's own colours win here.
+    .o_native_bi_surface { background: var(--bi-surface) !important; color: var(--bi-text) !important; }
+    .card-body { background: transparent !important; color: inherit !important; }
+    h1, h2, h3, h4, h5, h6, dt, dd, label { color: var(--bi-text); }
+    .alert-warning { background: rgba(227, 168, 87, .14); border-color: rgba(227, 168, 87, .35); color: #f0cf9c; }
+
+    .btn-outline-secondary {
+        color: var(--bi-text);
+        border-color: var(--bi-line);
+        &:hover, &:focus { color: var(--bi-text); background: var(--bi-raised); border-color: var(--bi-line); }
+    }
+    .btn-outline-primary {
+        color: var(--bi-accent);
+        border-color: var(--bi-accent);
+        &:hover, &:focus { color: #fff; background: rgba(155, 145, 255, .25); }
+    }
+    .btn:disabled { opacity: .45; }
+    .form-control:focus, .form-select:focus { background-color: var(--bi-surface); color: var(--bi-text); }
+    .alert-danger { background: rgba(220, 53, 69, .14); border-color: rgba(220, 53, 69, .35); color: #f2b8be; }
+    pre { color: var(--bi-text); background: var(--bi-raised); border-radius: .5rem; padding: .5rem; }
+    .text-muted { color: var(--bi-muted) !important; }
+    .text-danger { color: #f2b8be !important; }
+}

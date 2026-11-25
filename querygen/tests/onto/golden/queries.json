@@ -1,0 +1,411 @@
+{
+  "count_accuracy_by_warehouse": {
+    "decimal": true,
+    "derive": [
+      {
+        "alias": "count_accuracy",
+        "formula": "matched_lines / counted_lines",
+        "zero_division": "null"
+      }
+    ],
+    "merge": null,
+    "metric": "count_accuracy",
+    "object": "stock_position",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": null,
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "count",
+          "alias": "counted_lines",
+          "field_name": "CASE WHEN \"counted\" IS TRUE THEN _onto_id END"
+        },
+        {
+          "aggregation": "count",
+          "alias": "matched_lines",
+          "field_name": "CASE WHEN \"counted\" IS TRUE AND \"count_diff\" = 0 THEN _onto_id END"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "warehouse",
+          "field_name_as": "warehouse"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible)",
+      "sql_view_name": "wad_onto_stock_position_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "counted_lines_total": {
+    "decimal": false,
+    "derive": [],
+    "merge": null,
+    "metric": "counted_lines",
+    "object": "stock_position",
+    "page": 1,
+    "params": {},
+    "path": "tile",
+    "period": null,
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "tile",
+      "arithmetic_value_type": "COUNT",
+      "data_field_name": "CASE WHEN \"counted\" IS TRUE THEN _onto_id END",
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible)",
+      "sql_view_name": "wad_onto_stock_position_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "days_of_inventory_period": {
+    "decimal": true,
+    "derive": [
+      {
+        "alias": "days_of_inventory",
+        "formula": "stock_value * 30 / cogs",
+        "zero_division": "null"
+      }
+    ],
+    "merge": null,
+    "metric": "days_of_inventory",
+    "object": "stock_valuation",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": {
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "cogs",
+          "field_name": "CASE WHEN \"layer_quantity\" < 0 AND \"scrapped\" IS NOT TRUE AND \"layer_date\" >= '2026-09-01' AND \"layer_date\" < '2026-10-01' THEN (-\"value\") END"
+        },
+        {
+          "aggregation": "sum",
+          "alias": "stock_value",
+          "field_name": "remaining_value"
+        }
+      ],
+      "matrix_row_dims": [],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible)",
+      "sql_view_name": "wad_onto_stock_valuation_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "margin_pct_by_product_compare": {
+    "decimal": true,
+    "derive": [
+      {
+        "alias": "margin_pct",
+        "formula": "margin / net_revenue",
+        "zero_division": "null"
+      }
+    ],
+    "merge": {
+      "absent": "null",
+      "bucket_column": null,
+      "bucket_grain": null,
+      "kind": "previous_period",
+      "match_bucket": null,
+      "match_dims": [
+        "product"
+      ],
+      "measures": [
+        {
+          "change": "margin_pct_change",
+          "change_pct": "margin_pct_change_pct",
+          "key": "margin_pct",
+          "previous": "margin_pct_previous"
+        }
+      ],
+      "previous_period": {
+        "from": "2026-08-02",
+        "to": "2026-08-31"
+      }
+    },
+    "metric": "margin_pct",
+    "object": "sales_order_line",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": {
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    "previous_request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "margin",
+          "field_name": "(\"net_amount\" - (\"quantity\" * \"unit_cost\"))"
+        },
+        {
+          "aggregation": "sum",
+          "alias": "net_revenue",
+          "field_name": "net_amount"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "product",
+          "field_name_as": "product"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible) AND (\"order_date\" >= '2026-08-02' AND \"order_date\" < '2026-09-01')",
+      "sql_view_name": "wad_onto_sales_order_line_view"
+    },
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "margin",
+          "field_name": "(\"net_amount\" - (\"quantity\" * \"unit_cost\"))"
+        },
+        {
+          "aggregation": "sum",
+          "alias": "net_revenue",
+          "field_name": "net_amount"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "product",
+          "field_name_as": "product"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible) AND (\"order_date\" >= '2026-09-01' AND \"order_date\" < '2026-10-01')",
+      "sql_view_name": "wad_onto_sales_order_line_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "near_expiry_qty_45_days_by_warehouse": {
+    "decimal": true,
+    "derive": [],
+    "merge": null,
+    "metric": "near_expiry_qty",
+    "object": "stock_position",
+    "page": 1,
+    "params": {
+      "expiry_days": 45
+    },
+    "path": "matrix",
+    "period": {
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "near_expiry_qty",
+          "field_name": "CASE WHEN \"expiry_date\" >= '2026-09-30' AND \"expiry_date\" <= (CAST('2026-09-30' AS DATE) + %(expiry_days)s) THEN quantity END"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "warehouse",
+          "field_name_as": "warehouse"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible)",
+      "sql_view_name": "wad_onto_stock_position_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "revenue_by_customer_month": {
+    "decimal": true,
+    "derive": [],
+    "merge": null,
+    "metric": "revenue",
+    "object": "sales_order_line",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": {
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "order_date",
+        "grain": "month"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "revenue",
+          "field_name": "(\"quantity\" * \"price\")"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "customer",
+          "field_name_as": "customer"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible) AND (\"order_date\" >= '2026-09-01' AND \"order_date\" < '2026-10-01')",
+      "sql_view_name": "wad_onto_sales_order_line_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "revenue_top_customers": {
+    "decimal": true,
+    "derive": [],
+    "merge": null,
+    "metric": "revenue",
+    "object": "sales_order_line",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": {
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    },
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "revenue",
+          "field_name": "(\"quantity\" * \"price\")"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "customer",
+          "field_name_as": "customer"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible) AND (\"order_date\" >= '2026-09-01' AND \"order_date\" < '2026-10-01')",
+      "sql_view_name": "wad_onto_sales_order_line_view"
+    },
+    "row_cap": 5000,
+    "top_n": {
+      "by": "revenue",
+      "dir": "desc",
+      "n": 10
+    }
+  },
+  "stock_total": {
+    "decimal": true,
+    "derive": [],
+    "merge": null,
+    "metric": "on_hand_qty",
+    "object": "stock_position",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": null,
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "on_hand_qty",
+          "field_name": "quantity"
+        }
+      ],
+      "matrix_row_dims": [],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible)",
+      "sql_view_name": "wad_onto_stock_position_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  },
+  "usable_by_warehouse_branch": {
+    "decimal": true,
+    "derive": [],
+    "merge": null,
+    "metric": "usable_qty",
+    "object": "stock_position",
+    "page": 1,
+    "params": {},
+    "path": "matrix",
+    "period": null,
+    "previous_request": null,
+    "release": "6ff00e99f7ed52edee7c286aface0b67089b08fa8600ac8ec4d0e961183f486b",
+    "request": {
+      "analytic_type": "matrix",
+      "matrix_col_dim": {
+        "field_name": "1",
+        "grain": "value"
+      },
+      "matrix_measures": [
+        {
+          "aggregation": "sum",
+          "alias": "usable_qty",
+          "field_name": "CASE WHEN (\"location_role\" IS NULL OR \"location_role\" NOT IN ('damaged', 'qc_hold', 'expired')) THEN quantity END"
+        }
+      ],
+      "matrix_row_dims": [
+        {
+          "field_name": "warehouse",
+          "field_name_as": "warehouse"
+        }
+      ],
+      "pre_defined_filter_conditions": "WHERE _onto_id IN (SELECT id FROM onto_visible) AND (\"location_role\" IN ('branch'))",
+      "sql_view_name": "wad_onto_stock_position_view"
+    },
+    "row_cap": 5000,
+    "top_n": null
+  }
+}

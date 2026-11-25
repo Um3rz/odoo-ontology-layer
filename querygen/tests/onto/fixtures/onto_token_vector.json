@@ -1,0 +1,39 @@
+{
+  "bot": {
+    "payload": {
+      "cids": [
+        1
+      ],
+      "db": "5b2f8c1e-7a3d-4e6f-9b0a-1c2d3e4f5a6b",
+      "exp": 1790001800,
+      "iat": 1790000000,
+      "jti": "2f6b9d3a-1c5e-4b7a-8d90-3e4f5a6b7c8d",
+      "kid": null,
+      "typ": "bot",
+      "uid": 3,
+      "v": 1
+    },
+    "signed_bytes": "{\"cids\":[1],\"db\":\"5b2f8c1e-7a3d-4e6f-9b0a-1c2d3e4f5a6b\",\"exp\":1790001800,\"iat\":1790000000,\"jti\":\"2f6b9d3a-1c5e-4b7a-8d90-3e4f5a6b7c8d\",\"kid\":null,\"typ\":\"bot\",\"uid\":3,\"v\":1}",
+    "token": "eyJjaWRzIjpbMV0sImRiIjoiNWIyZjhjMWUtN2EzZC00ZTZmLTliMGEtMWMyZDNlNGY1YTZiIiwiZXhwIjoxNzkwMDAxODAwLCJpYXQiOjE3OTAwMDAwMDAsImp0aSI6IjJmNmI5ZDNhLTFjNWUtNGI3YS04ZDkwLTNlNGY1YTZiN2M4ZCIsImtpZCI6bnVsbCwidHlwIjoiYm90IiwidWlkIjozLCJ2IjoxfQ.M5tLbJaOWaKb63QzO8F0FnsEysZvlre5PHDeDmUjHlc"
+  },
+  "description": "Cross-repo token vector (contract 3.1). Test-only secret and fixed ids; never a real credential. Signed bytes are the compact, sort_keys JSON of the payload; token = b64url(bytes) + '.' + b64url(HMAC-SHA256(secret, bytes)), base64url without padding. Querygen checks the shape regex and treats the token as opaque; Odoo's verify is the authority.",
+  "query": {
+    "payload": {
+      "cids": [
+        1
+      ],
+      "db": "5b2f8c1e-7a3d-4e6f-9b0a-1c2d3e4f5a6b",
+      "exp": 1790000900,
+      "iat": 1790000000,
+      "jti": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "kid": "0123456789abcdef0123456789abcdef",
+      "typ": "query",
+      "uid": 2,
+      "v": 1
+    },
+    "signed_bytes": "{\"cids\":[1],\"db\":\"5b2f8c1e-7a3d-4e6f-9b0a-1c2d3e4f5a6b\",\"exp\":1790000900,\"iat\":1790000000,\"jti\":\"7c9e6679-7425-40de-944b-e07fc1f90ae7\",\"kid\":\"0123456789abcdef0123456789abcdef\",\"typ\":\"query\",\"uid\":2,\"v\":1}",
+    "token": "eyJjaWRzIjpbMV0sImRiIjoiNWIyZjhjMWUtN2EzZC00ZTZmLTliMGEtMWMyZDNlNGY1YTZiIiwiZXhwIjoxNzkwMDAwOTAwLCJpYXQiOjE3OTAwMDAwMDAsImp0aSI6IjdjOWU2Njc5LTc0MjUtNDBkZS05NDRiLWUwN2ZjMWY5MGFlNyIsImtpZCI6IjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmIiwidHlwIjoicXVlcnkiLCJ1aWQiOjIsInYiOjF9.qVYQLQkm9A7eGYpGY7ZGqw3ShuNrmPYIrkI_ByIZnVM"
+  },
+  "secret_test_only": "onto-token-vector-test-only-not-a-credential",
+  "shape_regex": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+}

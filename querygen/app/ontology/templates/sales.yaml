@@ -1,0 +1,68 @@
+# Sales orders (Odoo 16 sale, sale_stock, sale_margin). Revenue is quantity x price (D40).
+# Cost is the sale_margin unit cost (purchase_price), so margin matches Odoo's own margin. unit_cost is optional:
+# Odoo 16 stores purchase_price only when sale_margin is installed.
+name: sales
+domains:
+  - {key: sales, label: Sales}
+  - {key: sales.orders, label: Sales orders, parent: sales, synonyms: [orders, customer orders, sales]}
+  - {key: sales.margin, label: Margin, parent: sales, synonyms: [profit, gross profit, margin]}
+objects:
+  - key: sales_order
+    label: Sales order
+    domain: sales.orders
+    base_model: sale.order
+    synonyms: [sales order, order, customer order, sale]
+    # Confirmed orders only: quotations are not sales.
+    base_filter:
+      - {prop: order_status, op: in, value: [sale, done]}
+    properties:
+      - {key: order_number, label: Order number, role: id, bindings: {"16": name}, synonyms: [order number, order reference, SO number]}
+      - {key: order_date, label: Order date, role: time, bindings: {"16": date_order}, synonyms: [order date, sale date]}
+      - {key: customer, label: Customer, role: dimension, bindings: {"16": partner_id}, synonyms: [customer, client, buyer]}
+      - {key: salesperson, label: Salesperson, role: dimension, bindings: {"16": user_id}, synonyms: [salesperson, seller, sales rep]}
+      - {key: sales_team, label: Sales team, role: dimension, bindings: {"16": team_id}, synonyms: [sales team, channel, team]}
+      - {key: warehouse, label: Warehouse, role: dimension, bindings: {"16": warehouse_id}, synonyms: [warehouse, store, fulfilment site]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+      - {key: order_status, label: Order status, role: status, bindings: {"16": state}, synonyms: [status, state]}
+      - {key: total, label: Order total, role: measure, unit: money, bindings: {"16": amount_total}, synonyms: [order total, total incl tax, sales total]}
+      - {key: untaxed_total, label: Order total excluding tax, role: measure, unit: money, bindings: {"16": amount_untaxed}, synonyms: [untaxed total, total excl tax, order total before tax]}
+  - key: sales_order_line
+    label: Sales order line
+    domain: sales.orders
+    base_model: sale.order.line
+    synonyms: [sales line, order line, sold line, sale line]
+    base_filter:
+      - {prop: order_status, op: in, value: [sale, done]}
+    properties:
+      - {key: order, label: Sales order, role: link, bindings: {"16": order_id}, synonyms: [order, sales order]}
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item, sku]}
+      - {key: product_category, label: Product category, role: dimension, bindings: {"16": product_id.product_tmpl_id.categ_id}, synonyms: [product category, category, product group]}
+      - {key: customer, label: Customer, role: dimension, bindings: {"16": order_partner_id}, synonyms: [customer, client]}
+      - {key: sales_team, label: Sales team, role: dimension, bindings: {"16": order_id.team_id}, synonyms: ["sales team"]}
+      - {key: warehouse, label: Warehouse, role: dimension, bindings: {"16": order_id.warehouse_id}, synonyms: ["warehouse"]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: ["company"]}
+      - {key: currency, label: Order currency, role: dimension, bindings: {"16": currency_id}, synonyms: ["order currency"]}
+      - {key: ordered_uom, label: Order unit of measure, role: dimension, bindings: {"16": product_uom}, synonyms: [order unit of measure]}
+      - {key: order_date, label: Order date, role: time, bindings: {"16": order_id.date_order}, synonyms: [order date, sale date]}
+      - {key: order_status, label: Order status, role: status, bindings: {"16": order_id.state}, synonyms: [status, order status]}
+      - {key: quantity, label: Quantity, role: measure, unit: qty, bindings: {"16": product_uom_qty}, synonyms: [quantity, qty, units]}
+      - {key: price, label: Unit price, role: measure, unit: money, bindings: {"16": price_unit}, synonyms: [price, unit price, selling price]}
+      - {key: net_amount, label: Net amount, role: measure, unit: money, bindings: {"16": price_subtotal}, synonyms: [net revenue, net sales, line subtotal, sales excl tax]}
+      - {key: tax_included_amount, label: Discounted total including tax, role: measure, unit: money, bindings: {"16": price_total}, synonyms: ["discounted total including tax"]}
+      - {key: unit_cost, label: Unit cost, role: measure, unit: money, bindings: {"16": purchase_price}, optional: true, synonyms: [unit cost, cost price, purchase price]}
+metrics:
+  - {key: order_count, label: Orders, object: sales_order, unit: count, additivity: additive, aggregation: count, time_property: order_date, synonyms: [orders, order count, number of orders, sales orders]}
+  - {key: average_order_value, label: Average order value excluding tax, object: sales_order, unit: money, additivity: non_additive, aggregation: avg, measure: untaxed_total, time_property: order_date, synonyms: [average order value, AOV, average basket, average basket size, average order amount]}
+  - {key: units_sold, label: Confirmed sales quantity ordered, object: sales_order_line, unit: qty, additivity: additive, aggregation: sum, measure: quantity, time_property: order_date, synonyms: [units sold, quantity sold, sales volume]}
+  - {key: revenue, label: Sales order value before discounts and tax, object: sales_order_line, unit: money, additivity: additive, aggregation: sum, derived_from: "quantity * price", time_property: order_date, synonyms: [gross booked sales before discounts, order list value]}
+  - {key: net_revenue, label: Sales order value after discounts excluding tax, object: sales_order_line, unit: money, additivity: additive, aggregation: sum, measure: net_amount, time_property: order_date, synonyms: [net sales order value, net booked sales, sales after discount]}
+  - {key: sales_value_including_tax, label: Sales order value after discounts including tax, object: sales_order_line, unit: money, additivity: additive, aggregation: sum, measure: tax_included_amount, time_property: order_date, synonyms: [gross sales including tax, sales with tax]}
+  - {key: cost_of_sales, label: Cost of sales, object: sales_order_line, unit: money, additivity: additive, aggregation: sum, derived_from: "quantity * unit_cost", time_property: order_date, synonyms: [cost of sales, cost of goods sold, sales cost]}
+  - {key: margin, label: Margin, object: sales_order_line, unit: money, additivity: additive, aggregation: sum, derived_from: "net_amount - quantity * unit_cost", time_property: order_date, synonyms: [margin, gross margin, gross profit, sales profit]}
+  - {key: margin_pct, label: Margin percent, object: sales_order_line, unit: pct, additivity: non_additive, derived_from: "margin / net_revenue", synonyms: [margin percent, margin rate, gross margin percent]}
+rules: []
+links:
+  - {key: sales_line_order, label: Sales line to order, source: sales_order_line, target: sales_order, via: order, cardinality: "m:1", synonyms: [order of line]}
+  - {key: sales_line_product, label: Sales line to product, source: sales_order_line, target: product, via: product, cardinality: "m:1", synonyms: [product sold]}
+  - {key: sales_order_customer, label: Sales order to customer, source: sales_order, target: partner, via: customer, cardinality: "m:1", synonyms: [customer of order]}
+  - {key: sales_order_warehouse, label: Sales order to warehouse, source: sales_order, target: warehouse, via: warehouse, cardinality: "m:1", synonyms: [fulfilling warehouse]}

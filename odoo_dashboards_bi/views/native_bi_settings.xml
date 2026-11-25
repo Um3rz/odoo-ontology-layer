@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_native_bi_chat" model="ir.actions.client">
+        <field name="name">BI Chat</field>
+        <field name="tag">native_bi.chat</field>
+    </record>
+    <record id="action_native_bi_ontology" model="ir.actions.client">
+        <field name="name">BI Ontology</field>
+        <field name="tag">native_bi.ontology</field>
+    </record>
+
+    <menuitem id="menu_native_bi" name="Business Intelligence" sequence="32"
+              web_icon="odoo_dashboards_saas,static/description/icon.png"
+              groups="base.group_user"/>
+    <menuitem id="menu_native_bi_chat" name="BI Chat" parent="menu_native_bi"
+              action="action_native_bi_chat" sequence="10" groups="base.group_user"/>
+    <menuitem id="menu_native_bi_ontology" name="Ontology Setup" parent="menu_native_bi"
+              action="action_native_bi_ontology" sequence="20" groups="-odoo_dashboards_bi.group_onto_steward,base.group_system"/>
+
+    <record id="view_native_bi_settings" model="ir.ui.view">
+        <field name="name">res.config.settings.form.native.bi</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="BI" string="BI" data-key="native_bi"
+                     groups="base.group_system">
+                    <h2>Business Intelligence</h2>
+                    <div class="o_settings_container">
+                        <div class="o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <div class="o_form_label">Ontology</div>
+                                <div class="text-muted">Set up BI and review the metrics and data sources used by chat.</div>
+                                <button name="%(action_native_bi_ontology)d" type="action" string="Open Ontology"
+                                        icon="fa-arrow-right" class="btn-link"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,1063 @@
+{
+ "pos.order": {
+  "amount_total": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_order": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "session_id": {
+   "relation": "pos.session",
+   "store": true,
+   "type": "many2one"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  }
+ },
+ "pos.order.line": {
+  "order_id": {
+   "relation": "pos.order",
+   "store": true,
+   "type": "many2one"
+  },
+  "price_subtotal": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "price_subtotal_incl": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "price_unit": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "total_cost": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  }
+ },
+ "pos.session": {
+  "config_id": {
+   "relation": "pos.config",
+   "store": true,
+   "type": "many2one"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "start_at": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "stop_at": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "user_id": {
+   "relation": "res.users",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "product.category": {
+  "complete_name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "parent_id": {
+   "relation": "product.category",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "product.product": {
+  "default_code": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "product_tmpl_id": {
+   "relation": "product.template",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "product.supplierinfo": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_end": {
+   "relation": null,
+   "store": true,
+   "type": "date"
+  },
+  "date_start": {
+   "relation": null,
+   "store": true,
+   "type": "date"
+  },
+  "delay": {
+   "relation": null,
+   "store": true,
+   "type": "integer"
+  },
+  "min_qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "price": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_tmpl_id": {
+   "relation": "product.template",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "product.template": {
+  "categ_id": {
+   "relation": "product.category",
+   "store": true,
+   "type": "many2one"
+  },
+  "list_price": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "seller_ids": {
+   "relation": "product.supplierinfo",
+   "store": true,
+   "type": "one2many"
+  },
+  "type": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "uom_id": {
+   "relation": "uom.uom",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "purchase.order": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_approve": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "date_order": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "date_planned": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "effective_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "receipt_status": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "user_id": {
+   "relation": "res.users",
+   "store": true,
+   "type": "many2one"
+  },
+  "currency_id": {
+   "relation": "res.currency",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "purchase.order.line": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_planned": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "order_id": {
+   "relation": "purchase.order",
+   "store": true,
+   "type": "many2one"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "price_subtotal": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "price_unit": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "qty_received": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  }
+ },
+ "res.company": {
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "parent_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "currency_id": {
+   "relation": "res.currency",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "res.partner": {
+  "customer_rank": {
+   "relation": null,
+   "store": true,
+   "type": "integer"
+  },
+  "employee": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "supplier_rank": {
+   "relation": null,
+   "store": true,
+   "type": "integer"
+  }
+ },
+ "sale.order": {
+  "amount_total": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "amount_untaxed": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_order": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "team_id": {
+   "relation": "crm.team",
+   "store": true,
+   "type": "many2one"
+  },
+  "user_id": {
+   "relation": "res.users",
+   "store": true,
+   "type": "many2one"
+  },
+  "warehouse_id": {
+   "relation": "stock.warehouse",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "sale.order.line": {
+  "order_id": {
+   "relation": "sale.order",
+   "store": true,
+   "type": "many2one"
+  },
+  "order_partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "price_subtotal": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "price_unit": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_uom_qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "purchase_price": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "currency_id": {
+   "relation": "res.currency",
+   "store": true,
+   "type": "many2one"
+  },
+  "price_total": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "product_uom": {
+   "relation": "uom.uom",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "stock.location": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "complete_name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "id": {
+   "relation": null,
+   "store": true,
+   "type": "integer"
+  },
+  "location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "return_location": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "scrap_location": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "usage": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "warehouse_id": {
+   "relation": "stock.warehouse",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "stock.lot": {
+  "alert_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "expiration_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "removal_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "use_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  }
+ },
+ "stock.move": {
+  "date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "is_inventory": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "location_dest_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "picking_id": {
+   "relation": "stock.picking",
+   "store": true,
+   "type": "many2one"
+  },
+  "picking_type_id": {
+   "relation": "stock.picking.type",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_uom_qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "purchase_line_id": {
+   "relation": "purchase.order.line",
+   "store": true,
+   "type": "many2one"
+  },
+  "quantity_done": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "scrapped": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "sale_line_id": {
+   "relation": "sale.order.line",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "stock.picking": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_done": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "location_dest_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "picking_type_id": {
+   "relation": "stock.picking.type",
+   "store": true,
+   "type": "many2one"
+  },
+  "scheduled_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  }
+ },
+ "stock.picking.type": {
+  "code": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "sequence_code": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "warehouse_id": {
+   "relation": "stock.warehouse",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "stock.quant": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "in_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "inventory_diff_quantity": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "inventory_quantity_set": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "lot_id": {
+   "relation": "stock.lot",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "quantity": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "reserved_quantity": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  }
+ },
+ "stock.scrap": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date_done": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "scrap_qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  }
+ },
+ "stock.valuation.layer": {
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "create_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "quantity": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "remaining_qty": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  },
+  "remaining_value": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "stock_move_id": {
+   "relation": "stock.move",
+   "store": true,
+   "type": "many2one"
+  },
+  "unit_cost": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "value": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  }
+ },
+ "stock.warehouse": {
+  "code": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "lot_stock_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "reception_steps": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "view_location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "account.move": {
+  "amount_residual_signed": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "amount_untaxed_signed": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "date": {
+   "relation": null,
+   "store": true,
+   "type": "date"
+  },
+  "invoice_date": {
+   "relation": null,
+   "store": true,
+   "type": "date"
+  },
+  "invoice_date_due": {
+   "relation": null,
+   "store": true,
+   "type": "date"
+  },
+  "move_type": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "payment_state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "state": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "payment_id": {
+   "relation": "account.payment",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "account.payment": {
+  "amount": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "currency_id": {
+   "relation": "res.currency",
+   "store": true,
+   "type": "many2one"
+  },
+  "move_id": {
+   "relation": "account.move",
+   "store": true,
+   "type": "many2one"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "partner_type": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "payment_type": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  }
+ },
+ "crm.lead": {
+  "active": {
+   "relation": null,
+   "store": true,
+   "type": "boolean"
+  },
+  "company_id": {
+   "relation": "res.company",
+   "store": true,
+   "type": "many2one"
+  },
+  "create_date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "date_deadline": {
+   "relation": null,
+   "store": true,
+   "type": "date"
+  },
+  "expected_revenue": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  },
+  "name": {
+   "relation": null,
+   "store": true,
+   "type": "char"
+  },
+  "partner_id": {
+   "relation": "res.partner",
+   "store": true,
+   "type": "many2one"
+  },
+  "stage_id": {
+   "relation": "crm.stage",
+   "store": true,
+   "type": "many2one"
+  },
+  "team_id": {
+   "relation": "crm.team",
+   "store": true,
+   "type": "many2one"
+  },
+  "type": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  }
+ },
+ "stock.move.line": {
+  "date": {
+   "relation": null,
+   "store": true,
+   "type": "datetime"
+  },
+  "location_dest_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "location_id": {
+   "relation": "stock.location",
+   "store": true,
+   "type": "many2one"
+  },
+  "lot_id": {
+   "relation": "stock.lot",
+   "store": true,
+   "type": "many2one"
+  },
+  "move_id": {
+   "relation": "stock.move",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "product_uom_id": {
+   "relation": "uom.uom",
+   "store": true,
+   "type": "many2one"
+  },
+  "qty_done": {
+   "relation": null,
+   "store": true,
+   "type": "float"
+  }
+ },
+ "account.move.line": {
+  "move_id": {
+   "relation": "account.move",
+   "store": true,
+   "type": "many2one"
+  },
+  "display_type": {
+   "relation": null,
+   "store": true,
+   "type": "selection"
+  },
+  "product_id": {
+   "relation": "product.product",
+   "store": true,
+   "type": "many2one"
+  },
+  "purchase_line_id": {
+   "relation": "purchase.order.line",
+   "store": true,
+   "type": "many2one"
+  }
+ },
+ "account.partial.reconcile": {
+  "debit_move_id": {
+   "relation": "account.move.line",
+   "store": true,
+   "type": "many2one"
+  },
+  "credit_move_id": {
+   "relation": "account.move.line",
+   "store": true,
+   "type": "many2one"
+  },
+  "amount": {
+   "relation": null,
+   "store": true,
+   "type": "monetary"
+  }
+ }
+}

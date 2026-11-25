@@ -1,0 +1,33 @@
+{
+    "name": "Odoo Dashboards BI",
+    "version": "16.0.2.6.0",
+    "summary": "Ask about Odoo records, metrics and dashboard widgets",
+    "category": "Productivity",
+    "license": "LGPL-3",
+    "author": "odoodashboards.com",
+    "depends": ["odoo_dashboards_saas", "bus", "mail", "stock"],
+    "pre_init_hook": "migrate_agents_addon",
+    "post_init_hook": "post_init_hook",
+    "data": [
+        "security/onto_security.xml",
+        "security/ir.model.access.csv",
+        "security/native_bi.xml",
+        "data/onto_bot.xml",
+        "data/onto_bot_groups.xml",
+        "data/onto_cron.xml",
+        "data/onto_health_cron.xml",
+        "data/native_bi_cron.xml",
+        "views/onto_recommendation_views.xml",
+        "views/onto_agent_setting_views.xml",
+        "views/native_bi_settings.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "odoo_dashboards_bi/static/src/**/*.js",
+            "odoo_dashboards_bi/static/src/**/*.xml",
+            "odoo_dashboards_bi/static/src/**/*.scss",
+        ],
+    },
+    "installable": True,
+    "application": False,
+}

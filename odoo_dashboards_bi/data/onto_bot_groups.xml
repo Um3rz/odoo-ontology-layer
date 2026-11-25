@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Deliberately not noupdate: this runs on every install, -u and -i, so the bot's
+         optional app read groups are granted again after an upgrade or re-init. -->
+    <function model="res.users" name="_onto_grant_bot_read_groups"/>
+</odoo>

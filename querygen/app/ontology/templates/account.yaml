@@ -1,0 +1,89 @@
+name: account
+domains:
+  - {key: account, label: Accounting}
+  - {key: account.billing, label: Invoices and bills, parent: account}
+  - {key: account.settlement, label: Payments and balances, parent: account}
+objects:
+  - key: billing_document
+    label: Posted invoice, bill or credit note
+    domain: account.billing
+    base_model: account.move
+    snapshot: true
+    synonyms: [invoice, vendor bill, credit note, refund]
+    base_filter:
+      - {prop: document_state, op: "=", value: posted}
+      - {prop: document_type, op: in, value: [out_invoice, out_refund, in_invoice, in_refund]}
+    properties:
+      - {key: document_number, label: Document number, role: id, bindings: {"16": name}, synonyms: ["document number"]}
+      - {key: document_state, label: Posting state, role: status, bindings: {"16": state}, synonyms: ["posting state"]}
+      - {key: document_type, label: Document type, role: status, bindings: {"16": move_type}, synonyms: ["document type"]}
+      - {key: billing_date, label: Invoice or bill date, role: time, bindings: {"16": invoice_date}, synonyms: ["invoice or bill date"]}
+      - {key: due_date, label: Due date, role: time, bindings: {"16": invoice_date_due}, synonyms: ["due date"]}
+      - {key: billing_partner, label: Customer or vendor, role: dimension, bindings: {"16": partner_id}, synonyms: ["customer or vendor"]}
+      - {key: billing_company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: ["company"]}
+      - {key: company_currency, label: Company currency, role: dimension, bindings: {"16": company_id.currency_id}, synonyms: ["company currency"]}
+      - {key: settlement_status, label: Payment status, role: status, bindings: {"16": payment_state}, synonyms: ["payment status"]}
+      - {key: untaxed_signed, label: Signed untaxed value in company currency, role: measure, unit: money, bindings: {"16": amount_untaxed_signed}, synonyms: ["signed untaxed value in company currency"]}
+      - {key: residual_signed, label: Signed open balance in company currency, role: measure, unit: money, bindings: {"16": amount_residual_signed}, synonyms: ["signed open balance in company currency"]}
+  - key: billing_line
+    label: Posted invoice or bill line
+    domain: account.billing
+    base_model: account.move.line
+    synonyms: [invoice line, vendor bill line, credit note line]
+    base_filter:
+      - {prop: line_document_state, op: "=", value: posted}
+      - {prop: line_document_type, op: in, value: [out_invoice, out_refund, in_invoice, in_refund]}
+      - {prop: line_display_type, op: "=", value: product}
+    properties:
+      - {key: line_document, label: Billing document, role: link, bindings: {"16": move_id}, synonyms: [billing document]}
+      - {key: line_document_state, label: Document state, role: status, bindings: {"16": move_id.state}, synonyms: [posting state]}
+      - {key: line_document_type, label: Document type, role: status, bindings: {"16": move_id.move_type}, synonyms: [document type]}
+      - {key: line_display_type, label: Line type, role: status, bindings: {"16": display_type}, synonyms: [line type]}
+      - {key: billed_product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product billed]}
+      - {key: billed_purchase_line, label: Source purchase order line, role: link, bindings: {"16": purchase_line_id}, synonyms: [purchase line billed]}
+  - key: posted_payment
+    label: Posted payment
+    domain: account.settlement
+    base_model: account.payment
+    synonyms: [payment, cash receipt, vendor payment]
+    base_filter:
+      - {prop: payment_posting_state, op: "=", value: posted}
+    properties:
+      - {key: payment_posting_state, label: Posting state, role: status, bindings: {"16": move_id.state}, synonyms: ["posting state"]}
+      - {key: paid_date, label: Payment date, role: time, bindings: {"16": move_id.date}, synonyms: ["payment date"]}
+      - {key: payment_direction, label: Payment direction, role: status, bindings: {"16": payment_type}, synonyms: ["payment direction"]}
+      - {key: payment_partner_type, label: Customer or vendor payment, role: status, bindings: {"16": partner_type}, synonyms: ["customer or vendor payment"]}
+      - {key: payment_partner, label: Customer or vendor, role: dimension, bindings: {"16": partner_id}, synonyms: ["customer or vendor"]}
+      - {key: payment_company, label: Paying company, role: dimension, bindings: {"16": move_id.company_id}, synonyms: ["paying company"]}
+      - {key: payment_currency, label: Payment currency, role: dimension, bindings: {"16": currency_id}, synonyms: ["payment currency"]}
+      - {key: payment_amount, label: Amount in payment currency, role: measure, unit: money, bindings: {"16": amount}, synonyms: ["amount in payment currency"]}
+  - key: accounting_reconciliation
+    label: Accounting reconciliation entry
+    domain: account.settlement
+    base_model: account.partial.reconcile
+    synonyms: [payment allocation, reconciliation entry, matched payment]
+    properties:
+      - {key: debit_document, label: Debit journal document, role: dimension, bindings: {"16": debit_move_id.move_id}, synonyms: [debit document]}
+      - {key: credit_document, label: Credit journal document, role: dimension, bindings: {"16": credit_move_id.move_id}, synonyms: [credit document]}
+      - {key: debit_payment, label: Debit payment, role: dimension, bindings: {"16": debit_move_id.move_id.payment_id}, synonyms: [debit payment]}
+      - {key: credit_payment, label: Credit payment, role: dimension, bindings: {"16": credit_move_id.move_id.payment_id}, synonyms: [credit payment]}
+      - {key: matched_amount, label: Matched amount in company currency, role: measure, unit: money, bindings: {"16": amount}, synonyms: [matched amount]}
+rules:
+  - {key: customer_billing, label: Customer invoices and credit notes, object: billing_document, when: [{prop: document_type, op: in, value: [out_invoice, out_refund]}]}
+  - {key: vendor_billing, label: Vendor bills and credits, object: billing_document, when: [{prop: document_type, op: in, value: [in_invoice, in_refund]}]}
+  - {key: posted_inbound_customer, label: Inbound customer payments, object: posted_payment, when: [{prop: payment_direction, op: "=", value: inbound}, {prop: payment_partner_type, op: "=", value: customer}]}
+metrics:
+  - {key: net_invoiced_sales, label: Net invoiced customer sales excluding tax, object: billing_document, unit: money, additivity: additive, aggregation: sum, measure: untaxed_signed, time_property: billing_date, filters: [customer_billing], synonyms: [posted invoiced sales, invoices less credits]}
+  - {key: open_receivable_balance, label: Current customer invoice balance net of credit notes, object: billing_document, unit: money, additivity: semi_additive, aggregation: sum, measure: residual_signed, over_time: last, filters: [customer_billing], synonyms: [outstanding receivables, customers owe]}
+  - {key: net_vendor_bill_value, label: Posted vendor bill value excluding tax and net of credits, object: billing_document, unit: money, additivity: additive, aggregation: sum, derived_from: "0 - untaxed_signed", time_property: billing_date, filters: [vendor_billing], synonyms: [billed vendor spend, vendor bills less credits]}
+  - {key: posted_customer_receipts, label: Posted inbound customer payments, object: posted_payment, unit: money, additivity: additive, aggregation: sum, measure: payment_amount, time_property: paid_date, filters: [posted_inbound_customer], synonyms: [customer collections, posted receipts]}
+links:
+  - {key: billing_line_document, label: Itemizes billing document, source: billing_line, target: billing_document, via: line_document, cardinality: "m:1"}
+  - {key: billing_line_purchase, label: Bills purchase order line, source: billing_line, target: purchase_order_line, via: billed_purchase_line, cardinality: "m:1"}
+  - {key: billing_line_product, label: Bills product, source: billing_line, target: product, via: billed_product, cardinality: "m:1"}
+  - {key: billed_to_partner, label: Bills customer or is billed by vendor, source: billing_document, target: partner, via: billing_partner, cardinality: "m:1"}
+  - {key: payments_with_partner, label: Receives from or pays contact, source: posted_payment, target: partner, via: payment_partner, cardinality: "m:1"}
+  - {key: reconciles_debit_document, label: Matches debit-side document, source: accounting_reconciliation, target: billing_document, via: debit_document, cardinality: "m:1"}
+  - {key: reconciles_credit_document, label: Matches credit-side document, source: accounting_reconciliation, target: billing_document, via: credit_document, cardinality: "m:1"}
+  - {key: reconciles_debit_payment, label: Applies debit-side payment, source: accounting_reconciliation, target: posted_payment, via: debit_payment, cardinality: "m:1"}
+  - {key: reconciles_credit_payment, label: Applies credit-side payment, source: accounting_reconciliation, target: posted_payment, via: credit_payment, cardinality: "m:1"}

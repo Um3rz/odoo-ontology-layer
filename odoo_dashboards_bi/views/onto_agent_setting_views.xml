@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Minimal technical view (3.6): a steward switches AI features on and the agent kill switch. The product UI is
+         the web app. Rows are created and changed here, one per company. -->
+    <record id="view_onto_agent_setting_tree" model="ir.ui.view">
+        <field name="name">onto.agent.setting.tree</field>
+        <field name="model">onto.agent.setting</field>
+        <field name="arch" type="xml">
+            <tree delete="false">
+                <field name="company_id"/>
+                <field name="ai_enabled"/>
+                <field name="agents_paused"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_onto_agent_setting_form" model="ir.ui.view">
+        <field name="name">onto.agent.setting.form</field>
+        <field name="model">onto.agent.setting</field>
+        <field name="arch" type="xml">
+            <form delete="false">
+                <sheet>
+                    <group>
+                        <field name="company_id" readonly="1"/>
+                        <field name="ai_enabled"/>
+                        <field name="agents_paused"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_onto_agent_setting" model="ir.actions.act_window">
+        <field name="name">Onto agent settings</field>
+        <field name="res_model">onto.agent.setting</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_onto_agent_setting"
+              name="Onto agent settings"
+              parent="odoo_dashboards_saas.menu_dashboard_saas_configurations"
+              action="action_onto_agent_setting"
+              groups="odoo_dashboards_bi.group_onto_steward"
+              sequence="51"/>
+</odoo>

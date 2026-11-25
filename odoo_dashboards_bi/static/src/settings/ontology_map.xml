@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_dashboards_bi.BiOntologyMap" owl="1">
+        <p t-if="!objects.length" class="o_native_bi_empty_map">Publish an ontology to explore its business objects.</p>
+        <div t-else="" class="o_native_bi_map">
+            <div class="o_native_bi_map_controls">
+                <label t-if="props.view === 'graph'">
+                    <span>Focus on an object</span>
+                    <select class="form-select" t-model="state.root" aria-label="Focus on an object">
+                        <option value="">All objects</option>
+                        <option t-foreach="objects" t-as="object" t-key="object.key" t-att-value="object.key" t-esc="object.label"/>
+                    </select>
+                </label>
+                <label t-if="props.view === 'graph'" class="form-check">
+                    <input type="checkbox" class="form-check-input" t-att-checked="state.showLineage"
+                           t-on-change="toggleLineage"/>
+                    <span class="form-check-label">Dashboard lineage</span>
+                </label>
+                <label t-if="props.view === 'graph' and canDraw and !state.simple" class="form-check">
+                    <input type="checkbox" class="form-check-input" t-model="state.showUnlinked"/>
+                    <span class="form-check-label">Show unlinked objects</span>
+                </label>
+                <div t-if="canDraw" class="o_native_bi_view_switch" aria-label="View mode">
+                    <button type="button" t-att-aria-pressed="!state.simple" t-on-click="() => this.state.simple = false">Visual</button>
+                    <button type="button" t-att-aria-pressed="state.simple" t-on-click="() => this.state.simple = true">Simplified</button>
+                </div>
+            </div>
+            <div class="o_native_bi_map_body">
+                <div t-if="canDraw and !state.simple" class="o_native_bi_map_canvas" t-ref="chart"
+                     role="img" t-att-aria-label="props.view === 'graph' ? 'Knowledge graph' : 'Business taxonomy'"/>
+                <div t-elif="props.view === 'graph'" class="o_native_bi_simple_map">
+                    <details t-foreach="visibleObjects" t-as="object" t-key="object.key">
+                        <summary t-esc="object.label"/>
+                        <p t-if="object.description" class="text-muted mt-2" t-esc="object.description"/>
+                        <ul>
+                            <li t-foreach="connections(object)" t-as="link" t-key="link.key">
+                                <t t-esc="link.label"/> · <t t-esc="link.neighbor"/>
+                                <small t-if="link.cardinality" t-esc="link.cardinality"/>
+                                <small t-if="link.navigation_only"> · Record relationship only</small>
+                            </li>
+                        </ul>
+                        <button type="button" class="btn btn-link p-0" t-on-click="() => this.select(object.key)">View object</button>
+                    </details>
+                </div>
+                <div t-else="" class="o_native_bi_simple_map">
+                    <t t-foreach="taxonomy" t-as="group" t-key="group.key">
+                        <t t-call="odoo_dashboards_bi.BiTaxonomyGroup"/>
+                    </t>
+                </div>
+                <aside t-if="focused" class="o_native_bi_map_detail" aria-label="Selected object">
+                    <h3 t-esc="focused.label"/>
+                    <p t-if="focused.description" t-esc="focused.description"/>
+                    <p class="text-muted" t-esc="focused.base_model"/>
+                    <ul t-if="focusedMetrics.length" class="list-unstyled">
+                        <li t-foreach="focusedMetrics" t-as="metric" t-key="metric.key">
+                            <button type="button" class="btn btn-link text-start p-0"
+                                    t-on-click="() => this.select(focused.key, metric.key)" t-esc="metric.label"/>
+                        </li>
+                    </ul>
+                    <div t-if="selectedMetric" class="border-top pt-2">
+                        <h4 class="h6" t-esc="selectedMetric.label"/>
+                        <p class="small mb-1"><t t-esc="metricDefinition(selectedMetric)"/> · <t t-esc="selectedMetric.unit"/></p>
+                        <p class="small mb-1">Time basis: <t t-esc="selectedMetric.time_property || (focused.snapshot ? 'Current snapshot' : 'No date field')"/></p>
+                        <p class="small mb-1">Trust: <t t-esc="selectedMetric.trust"/></p>
+                        <p t-if="selectedMetric.reconciliation" class="small mb-1">
+                            Checked against <t t-esc="selectedMetric.reconciliation.source"/> on
+                            <t t-esc="selectedMetric.reconciliation.checked_at"/>
+                        </p>
+                        <ul class="small">
+                            <li t-foreach="selectedMetric.base_filter || []" t-as="condition" t-key="condition_index"
+                                t-esc="conditionText(condition)"/>
+                            <li t-foreach="selectedMetric.built_in_filters || []" t-as="rule" t-key="rule.key">
+                                <t t-esc="rule.label"/>
+                                <ul>
+                                    <li t-foreach="rule.when" t-as="condition" t-key="condition_index"
+                                        t-esc="conditionText(condition)"/>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+            <div t-if="state.showLineage" class="o_native_bi_simple_map mt-3">
+                <p t-if="state.lineageError" class="text-danger">Dashboard lineage could not be loaded.</p>
+                <p t-elif="!state.lineage" class="text-muted">Loading dashboard lineage…</p>
+                <p t-elif="!state.lineage.length" class="text-muted">No accessible dashboard widgets.</p>
+                <details t-foreach="state.lineage || []" t-as="dashboard" t-key="dashboard.id">
+                    <summary t-esc="dashboard.label"/>
+                    <ul>
+                        <li t-foreach="dashboard.widgets" t-as="widget" t-key="widget.id">
+                            <t t-esc="widget.label"/>
+                            <t t-if="widget.dataset">
+                                → <t t-esc="widget.dataset.label"/>
+                                <t t-if="widget.dataset.model"> → <code t-esc="widget.dataset.model"/></t>
+                            </t>
+                        </li>
+                    </ul>
+                </details>
+            </div>
+        </div>
+    </t>
+    <t t-name="odoo_dashboards_bi.BiTaxonomyGroup" owl="1">
+        <details open="open">
+            <summary t-esc="group.label"/>
+            <div class="o_native_bi_taxonomy_branch">
+                <t t-foreach="group.children" t-as="child" t-key="child.key">
+                    <t t-call="odoo_dashboards_bi.BiTaxonomyGroup"><t t-set="group" t-value="child"/></t>
+                </t>
+                <button t-foreach="group.measures" t-as="measure" t-key="measure.key" type="button"
+                        class="btn btn-link d-block p-0" t-on-click="() => this.select(measure.object, measure.key)"
+                        t-esc="measure.label"/>
+                <details t-foreach="group.members" t-as="object" t-key="object.key">
+                    <summary t-esc="object.label"/>
+                    <p t-if="object.description" class="text-muted mt-2" t-esc="object.description"/>
+                    <ul t-if="object.metrics.length">
+                        <li t-foreach="object.metrics" t-as="metric" t-key="metric.key">
+                            <button type="button" class="btn btn-link p-0" t-on-click="() => this.select(object.key, metric.key)"
+                                    t-esc="metric.label"/>
+                        </li>
+                    </ul>
+                    <button type="button" class="btn btn-link p-0" t-on-click="() => this.select(object.key)">View object</button>
+                </details>
+            </div>
+        </details>
+    </t>
+</templates>

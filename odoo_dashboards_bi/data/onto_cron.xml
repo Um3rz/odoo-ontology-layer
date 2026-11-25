@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Weekly parity check (1.8, plan A3.5 step 4): one sample user per signature for each published object.
+         Active by default: it is the check that catches a projection or record-rule mismatch. -->
+    <record id="ir_cron_onto_parity" model="ir.cron">
+        <field name="name">Onto: parity check (weekly)</field>
+        <field name="model_id" ref="model_onto_parity_suspension"/>
+        <field name="state">code</field>
+        <field name="code">model._onto_parity_cron()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <!-- === 3.10 stock history (begin) === -->
+    <!-- Superseded by onto_tick (3.3): the stock history is a step of that tick now. Inactive, not deleted:
+         an upgrade stops the cron that already exists, and a <delete> would warn on every later upgrade. -->
+    <record id="ir_cron_onto_stock_daily" model="ir.cron">
+        <field name="name">Onto: stock history (superseded by onto_tick)</field>
+        <field name="model_id" ref="model_onto_stock_daily"/>
+        <field name="state">code</field>
+        <field name="code">model._onto_stock_daily_cron()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">False</field>
+    </record>
+    <!-- Steward action on the Stock history list: writes the next batch (resumable, same budget). -->
+    <record id="action_onto_stock_daily_backfill" model="ir.actions.server">
+        <field name="name">Backfill / resume stock history</field>
+        <field name="model_id" ref="model_onto_stock_daily"/>
+        <field name="binding_model_id" ref="model_onto_stock_daily"/>
+        <field name="binding_type">action</field>
+        <field name="groups_id" eval="[(4, ref('odoo_dashboards_bi.group_onto_steward'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_backfill_stock_history()</field>
+    </record>
+    <!-- === 3.10 stock history (end) === -->
+
+    <!-- === 3.3 onto_tick (begin) === -->
+    <!-- The one Onto cron (plan 6.1): every 5 minutes it runs the due jobs (models/onto_jobs.py), then the stock
+         history. Pausing it pauses Onto for the tenant. The weekly parity cron above stays separate (not budgeted). -->
+    <data noupdate="1">
+        <record id="ir_cron_onto_tick" model="ir.cron">
+            <field name="name">Onto: tick (every 5 minutes)</field>
+            <field name="model_id" ref="model_onto_jobs"/>
+            <field name="state">code</field>
+            <field name="code">model._onto_tick()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <!-- Fresh native BI installations use the Odoo-owned worker.
+                 Existing installations can keep their legacy schedule. -->
+            <field name="active">False</field>
+        </record>
+    </data>
+    <!-- === 3.3 onto_tick (end) === -->
+    <!-- === 3.11 retention (begin) === -->
+    <!-- Daily (plan A5.7): deletes Onto's expired rows in batches of 5000 within 30 s, then _trigger()s itself if work is left. -->
+    <record id="ir_cron_onto_gc" model="ir.cron">
+        <field name="name">Onto: data retention (daily, catches up)</field>
+        <field name="model_id" ref="model_onto_gc"/>
+        <field name="state">code</field>
+        <field name="code">model._onto_gc_cron()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+    <!-- === 3.11 retention (end) === -->
+</odoo>

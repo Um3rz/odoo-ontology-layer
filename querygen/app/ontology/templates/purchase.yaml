@@ -1,0 +1,80 @@
+# Purchasing (Odoo 16 purchase, purchase_stock, product supplier info). Purchase orders in
+# draft or confirmed states are supply, not stock. Cancelled lines are excluded by base filter.
+name: purchase
+domains:
+  - {key: purchase, label: Purchasing}
+  - {key: purchase.orders, label: Purchase orders, parent: purchase, synonyms: [PO, purchase orders, RFQs, supply]}
+  - {key: purchase.suppliers, label: Suppliers, parent: purchase, synonyms: [vendors, supplier terms, supplier prices]}
+objects:
+  - key: purchase_order
+    label: Purchase order
+    domain: purchase.orders
+    base_model: purchase.order
+    synonyms: [purchase order, PO, RFQ, order to supplier]
+    properties:
+      - {key: po_number, label: PO number, role: id, bindings: {"16": name}, synonyms: [PO number, purchase order number, PO name]}
+      - {key: supplier, label: Supplier, role: dimension, bindings: {"16": partner_id}, synonyms: [supplier, vendor]}
+      - {key: order_date, label: Order date, role: time, bindings: {"16": date_order}, synonyms: [order date, PO date, deadline date]}
+      - {key: approval_date, label: Approval date, role: time, bindings: {"16": date_approve}, synonyms: [approval date, confirmation date]}
+      - {key: expected_date, label: Expected date, role: time, bindings: {"16": date_planned}, synonyms: [expected date, planned date, expected delivery]}
+      - {key: first_receipt_date, label: First receipt date, role: time, bindings: {"16": effective_date}, synonyms: [received date, first receipt date, effective date]}
+      - {key: po_status, label: PO status, role: status, bindings: {"16": state}, synonyms: [status, PO status, state]}
+      - {key: receipt_status, label: Receipt status, role: status, bindings: {"16": receipt_status}, synonyms: [receipt status, receiving status]}
+      - {key: buyer, label: Buyer, role: dimension, bindings: {"16": user_id}, synonyms: [buyer, purchaser, purchase user]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+  - key: purchase_order_line
+    label: Purchase order line
+    domain: purchase.orders
+    base_model: purchase.order.line
+    synonyms: [PO line, purchase line, order line, supplier order line]
+    # Cancelled lines are not supply.
+    base_filter:
+      - {prop: line_status, op: "!=", value: cancel}
+    properties:
+      - {key: order, label: Purchase order, role: link, bindings: {"16": order_id}, synonyms: [PO, purchase order]}
+      - {key: product, label: Product, role: dimension, bindings: {"16": product_id}, synonyms: [product, item]}
+      - {key: supplier, label: Supplier, role: dimension, bindings: {"16": partner_id}, synonyms: [supplier, vendor]}
+      - {key: line_status, label: Line status, role: status, bindings: {"16": state}, synonyms: [status, line status]}
+      - {key: expected_date, label: Expected date, role: time, bindings: {"16": date_planned}, synonyms: [expected date, planned date, due date]}
+      - {key: confirmation_date, label: Order confirmation date, role: time, bindings: {"16": order_id.date_approve}, synonyms: ["order confirmation date"]}
+      - {key: purchase_currency, label: Order currency, role: dimension, bindings: {"16": order_id.currency_id}, synonyms: ["order currency"]}
+      - {key: qty_ordered, label: Ordered quantity, role: measure, unit: qty, bindings: {"16": product_qty}, synonyms: [ordered qty, PO quantity, order quantity]}
+      - {key: qty_received, label: Received quantity, role: measure, unit: qty, bindings: {"16": qty_received}, synonyms: [received qty, quantity received]}
+      - {key: unit_price, label: Unit price, role: measure, unit: money, bindings: {"16": price_unit}, synonyms: [unit price, cost price, purchase price]}
+      - {key: line_value, label: Line value, role: measure, unit: money, bindings: {"16": price_subtotal}, synonyms: [line value, line subtotal, purchase value]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+  - key: supplier_info
+    label: Supplier price and lead time
+    domain: purchase.suppliers
+    base_model: product.supplierinfo
+    synonyms: [supplier info, supplier terms, supplier price, vendor price, supplier lead time]
+    properties:
+      - {key: supplier, label: Supplier, role: dimension, bindings: {"16": partner_id}, synonyms: [supplier, vendor]}
+      - {key: product_template, label: Product template, role: dimension, bindings: {"16": product_tmpl_id}, synonyms: [product template]}
+      - {key: product, label: Product variant, role: dimension, bindings: {"16": product_id}, synonyms: [product variant, product]}
+      - {key: min_order_qty, label: Minimum order quantity, role: measure, unit: qty, bindings: {"16": min_qty}, synonyms: [MOQ, minimum order quantity, minimum qty]}
+      - {key: supplier_price, label: Supplier price, role: measure, unit: money, bindings: {"16": price}, synonyms: [supplier price, vendor price, buy price]}
+      - {key: lead_time_days, label: Lead time, role: measure, unit: days, bindings: {"16": delay}, synonyms: [lead time, supplier lead time, delivery time, delay]}
+      - {key: valid_from, label: Valid from, role: time, bindings: {"16": date_start}, synonyms: [valid from, start date]}
+      - {key: valid_to, label: Valid to, role: time, bindings: {"16": date_end}, synonyms: [valid to, end date]}
+      - {key: company, label: Company, role: dimension, bindings: {"16": company_id}, synonyms: [company]}
+metrics:
+  - {key: po_count, label: Confirmed purchase orders, object: purchase_order, unit: count, additivity: additive, aggregation: count, time_property: approval_date, filters: [confirmed_purchase_order], synonyms: [purchase orders, PO count, number of POs, orders placed]}
+  - {key: rfq_count, label: Open requests for quotation, object: purchase_order, unit: count, additivity: additive, aggregation: count, time_property: order_date, filters: [open_rfq], synonyms: [RFQs, draft purchase orders]}
+  - {key: ordered_qty, label: Ordered quantity, object: purchase_order_line, unit: qty, additivity: additive, aggregation: sum, measure: qty_ordered, time_property: expected_date, synonyms: [ordered quantity, PO quantity, quantity on order]}
+  - {key: received_qty, label: Received quantity, object: purchase_order_line, unit: qty, additivity: additive, aggregation: sum, measure: qty_received, time_property: expected_date, synonyms: [received quantity, quantity received, receipts]}
+  - {key: open_qty, label: Open quantity, object: purchase_order_line, unit: qty, additivity: additive, aggregation: sum, derived_from: "qty_ordered - qty_received", time_property: expected_date, synonyms: [open quantity, quantity not yet received, outstanding supply]}
+  - {key: purchase_value, label: Confirmed purchase order value excluding tax, object: purchase_order_line, unit: money, additivity: additive, aggregation: sum, measure: line_value, time_property: confirmation_date, filters: [confirmed_purchase_line], synonyms: [ordered purchase value, PO value, purchase commitments]}
+  - {key: supplier_lead_time_days, label: Average supplier lead time, object: supplier_info, unit: days, additivity: non_additive, aggregation: avg, measure: lead_time_days, synonyms: [average lead time, supplier lead time, lead time]}
+rules:
+  - {key: confirmed_purchase_order, label: Confirmed purchase order, object: purchase_order, when: [{prop: po_status, op: in, value: [purchase, done]}]}
+  - {key: open_rfq, label: Open request for quotation, object: purchase_order, when: [{prop: po_status, op: in, value: [draft, sent, to approve]}]}
+  - {key: confirmed_purchase_line, label: Confirmed purchase line, object: purchase_order_line, when: [{prop: line_status, op: in, value: [purchase, done]}]}
+links:
+  - {key: po_line_order, label: PO line to order, source: purchase_order_line, target: purchase_order, via: order, cardinality: "m:1", synonyms: [order of line]}
+  - {key: po_line_product, label: PO line to product, source: purchase_order_line, target: product, via: product, cardinality: "m:1", synonyms: [product on order]}
+  - {key: po_line_supplier, label: PO line to supplier, source: purchase_order_line, target: partner, via: supplier, cardinality: "m:1", synonyms: [supplier of line]}
+  - {key: po_supplier, label: PO to supplier, source: purchase_order, target: partner, via: supplier, cardinality: "m:1", synonyms: [supplier of PO]}
+  - {key: supplier_info_partner, label: Supplier terms to supplier, source: supplier_info, target: partner, via: supplier, cardinality: "m:1", synonyms: [supplier of terms]}
+  - {key: supplier_info_product, label: Supplier terms to product, source: supplier_info, target: product, via: product, cardinality: "m:1", synonyms: [product terms]}
+  - {key: product_supplier_terms, label: Product to supplier terms, source: product, target: supplier_info, via: supplier_lines, cardinality: "1:m", aggregate: supplier_lead_time_days, synonyms: [suppliers of product, supplier prices of product]}

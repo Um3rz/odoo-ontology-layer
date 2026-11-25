@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Daily Data Health run (2.6, D51): every check for every company. Stewards can run it on demand
+         (POST /onto/v1/health/run). -->
+    <record id="ir_cron_onto_health_run" model="ir.cron">
+        <field name="name">Onto: Data Health checks (daily)</field>
+        <field name="model_id" ref="model_onto_health"/>
+        <field name="state">code</field>
+        <field name="code">model.run_checks()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

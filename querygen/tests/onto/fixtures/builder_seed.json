@@ -1,0 +1,109 @@
+{
+  "introspect": {
+    "odoo_version": "16.0",
+    "database_uuid": "seed-db-test",
+    "modules": [{"name": "stock", "version": "16.0.1.1"}, {"name": "product", "version": "16.0.1.0"}],
+    "companies": [{"id": 1, "name": "Demo Company"}],
+    "warehouses": [{"id": 1, "code": "WH", "name": "Main Warehouse", "company_id": 1}],
+    "locations": [
+      {"id": 7, "complete_name": "WH/Stock", "usage": "internal", "warehouse_id": 1, "company_id": 1, "active": true, "onto_role": null},
+      {"id": 8, "complete_name": "WH/Stock/QC", "usage": "internal", "warehouse_id": 1, "company_id": 1, "active": true, "onto_role": null},
+      {"id": 9, "complete_name": "WH/Stock/Shelf A", "usage": "internal", "warehouse_id": 1, "company_id": 1, "active": true, "onto_role": null},
+      {"id": 10, "complete_name": "WH/Stock/QC damaged", "usage": "internal", "warehouse_id": 1, "company_id": 1, "active": true, "onto_role": null},
+      {"id": 3, "complete_name": "Partner Locations/Customers", "usage": "customer", "warehouse_id": null, "company_id": 1, "active": true, "onto_role": null}
+    ],
+    "models": [
+      {"model": "stock.quant", "name": "Quants", "custom": false, "fields": [
+        {"name": "product_id", "string": "Product", "type": "many2one", "relation": "product.product", "store": true, "custom": false, "selection": null},
+        {"name": "location_id", "string": "Location", "type": "many2one", "relation": "stock.location", "store": true, "custom": false, "selection": null},
+        {"name": "lot_id", "string": "Lot/Serial Number", "type": "many2one", "relation": "stock.lot", "store": true, "custom": false, "selection": null},
+        {"name": "company_id", "string": "Company", "type": "many2one", "relation": "res.company", "store": true, "custom": false, "selection": null},
+        {"name": "quantity", "string": "Quantity", "type": "float", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "reserved_quantity", "string": "Reserved Quantity", "type": "float", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "in_date", "string": "Incoming Date", "type": "datetime", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "inventory_quantity_set", "string": "Inventory Quantity Set", "type": "boolean", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "inventory_diff_quantity", "string": "Difference", "type": "float", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "x_grade", "string": "Grade", "type": "selection", "relation": null, "store": true, "custom": true, "selection": [["A", "Grade A"], ["B", "Grade B"]]}
+      ]},
+      {"model": "stock.move", "name": "Stock Move", "custom": false, "fields": [
+        {"name": "product_id", "string": "Product", "type": "many2one", "relation": "product.product", "store": true, "custom": false, "selection": null},
+        {"name": "location_id", "string": "Source Location", "type": "many2one", "relation": "stock.location", "store": true, "custom": false, "selection": null},
+        {"name": "location_dest_id", "string": "Destination Location", "type": "many2one", "relation": "stock.location", "store": true, "custom": false, "selection": null},
+        {"name": "product_uom_qty", "string": "Demand", "type": "float", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "quantity_done", "string": "Quantity Done", "type": "float", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "state", "string": "Status", "type": "selection", "relation": null, "store": true, "custom": false, "selection": [["draft", "New"], ["done", "Done"]]},
+        {"name": "date", "string": "Date Scheduled", "type": "datetime", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "picking_type_id", "string": "Operation Type", "type": "many2one", "relation": "stock.picking.type", "store": true, "custom": false, "selection": null}
+      ]},
+      {"model": "stock.location", "name": "Location", "custom": false, "fields": [
+        {"name": "complete_name", "string": "Full Location Name", "type": "char", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "usage", "string": "Location Type", "type": "selection", "relation": null, "store": true, "custom": false, "selection": [["internal", "Internal Location"], ["transit", "Transit Location"], ["customer", "Customer Location"]]},
+        {"name": "warehouse_id", "string": "Warehouse", "type": "many2one", "relation": "stock.warehouse", "store": true, "custom": false, "selection": null},
+        {"name": "company_id", "string": "Company", "type": "many2one", "relation": "res.company", "store": true, "custom": false, "selection": null},
+        {"name": "location_id", "string": "Parent Location", "type": "many2one", "relation": "stock.location", "store": true, "custom": false, "selection": null}
+      ]},
+      {"model": "stock.warehouse", "name": "Warehouse", "custom": false, "fields": [
+        {"name": "name", "string": "Warehouse", "type": "char", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "code", "string": "Short Name", "type": "char", "relation": null, "store": true, "custom": false, "selection": null}
+      ]},
+      {"model": "stock.lot", "name": "Lot/Serial Number", "custom": false, "fields": [
+        {"name": "name", "string": "Lot/Serial Number", "type": "char", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "product_id", "string": "Product", "type": "many2one", "relation": "product.product", "store": true, "custom": false, "selection": null},
+        {"name": "expiration_date", "string": "Expiration Date", "type": "datetime", "relation": null, "store": true, "custom": false, "selection": null}
+      ]},
+      {"model": "product.product", "name": "Product Variant", "custom": false, "fields": [
+        {"name": "default_code", "string": "Internal Reference", "type": "char", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "product_tmpl_id", "string": "Product Template", "type": "many2one", "relation": "product.template", "store": true, "custom": false, "selection": null}
+      ]},
+      {"model": "product.template", "name": "Product Template", "custom": false, "fields": [
+        {"name": "name", "string": "Name", "type": "char", "relation": null, "store": true, "custom": false, "selection": null},
+        {"name": "categ_id", "string": "Product Category", "type": "many2one", "relation": "product.category", "store": true, "custom": false, "selection": null},
+        {"name": "type", "string": "Product Type", "type": "selection", "relation": null, "store": true, "custom": false, "selection": [["consu", "Consumable"], ["product", "Storable Product"]]}
+      ]}
+    ]
+  },
+  "profile": {
+    "models": [
+      {"model": "stock.quant", "row_count": 1201, "fields": [
+        {"name": "product_id", "filled": 1201, "fill_rate": 1.0},
+        {"name": "location_id", "filled": 1201, "fill_rate": 1.0},
+        {"name": "lot_id", "filled": 640, "fill_rate": 0.533},
+        {"name": "company_id", "filled": 1201, "fill_rate": 1.0},
+        {"name": "quantity", "filled": 1201, "fill_rate": 1.0},
+        {"name": "reserved_quantity", "filled": 144, "fill_rate": 0.12},
+        {"name": "in_date", "filled": 1201, "fill_rate": 1.0, "min": "2026-02-14", "max": "2026-10-30"},
+        {"name": "inventory_quantity_set", "filled": 84, "fill_rate": 0.07},
+        {"name": "inventory_diff_quantity", "filled": 0, "fill_rate": 0.0},
+        {"name": "x_grade", "filled": 480, "fill_rate": 0.4}
+      ]},
+      {"model": "stock.move", "row_count": 5012, "fields": [
+        {"name": "product_id", "filled": 5012, "fill_rate": 1.0},
+        {"name": "location_id", "filled": 5012, "fill_rate": 1.0},
+        {"name": "location_dest_id", "filled": 5012, "fill_rate": 1.0},
+        {"name": "product_uom_qty", "filled": 5012, "fill_rate": 1.0},
+        {"name": "quantity_done", "filled": 4010, "fill_rate": 0.8},
+        {"name": "state", "filled": 5012, "fill_rate": 1.0},
+        {"name": "date", "filled": 5012, "fill_rate": 1.0, "min": "2026-01-03", "max": "2026-11-01"},
+        {"name": "picking_type_id", "filled": 4511, "fill_rate": 0.9}
+      ]},
+      {"model": "stock.location", "row_count": 14, "fields": [
+        {"name": "complete_name", "filled": 14, "fill_rate": 1.0},
+        {"name": "usage", "filled": 14, "fill_rate": 1.0},
+        {"name": "warehouse_id", "filled": 9, "fill_rate": 0.64},
+        {"name": "company_id", "filled": 14, "fill_rate": 1.0},
+        {"name": "location_id", "filled": 13, "fill_rate": 0.93}
+      ]},
+      {"model": "stock.lot", "row_count": 300, "fields": [
+        {"name": "name", "filled": 300, "fill_rate": 1.0},
+        {"name": "product_id", "filled": 300, "fill_rate": 1.0},
+        {"name": "expiration_date", "filled": 105, "fill_rate": 0.35, "min": "2026-03-09", "max": "2027-06-30"}
+      ]},
+      {"model": "product.product", "row_count": 88, "fields": [
+        {"name": "default_code", "filled": 84, "fill_rate": 0.95},
+        {"name": "product_tmpl_id", "filled": 88, "fill_rate": 1.0}
+      ]}
+    ],
+    "facts": {"lots_in_use": true, "expiry_in_use": true, "qc_location_present": true,
+              "history_days": {"stock.move": 412}}
+  }
+}

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Minimal technical view (3.7): read a proposal and approve its preferred option. Modify and reject are
+         on the sealed routes; the product UI is the web app. Records are created only by the bot. -->
+    <record id="view_onto_recommendation_tree" model="ir.ui.view">
+        <field name="name">onto.recommendation.tree</field>
+        <field name="model">onto.recommendation</field>
+        <field name="arch" type="xml">
+            <tree create="false" delete="false">
+                <field name="external_ref"/>
+                <field name="state"/>
+                <field name="version"/>
+                <field name="warehouse_id"/>
+                <field name="product_id"/>
+                <field name="shortage"/>
+                <field name="requested_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_onto_recommendation_form" model="ir.ui.view">
+        <field name="name">onto.recommendation.form</field>
+        <field name="model">onto.recommendation</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false">
+                <header>
+                    <button name="onto_button_approve" type="object" string="Approve preferred option"
+                            class="btn-primary" context="{'onto_version': version}"
+                            attrs="{'invisible': [('state', '!=', 'proposed')]}"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="external_ref"/>
+                            <field name="version"/>
+                            <field name="warehouse_id"/>
+                            <field name="product_id"/>
+                            <field name="location_id"/>
+                            <field name="shortage"/>
+                            <field name="confidence"/>
+                            <field name="reason_code"/>
+                        </group>
+                        <group>
+                            <field name="preferred_line_id"/>
+                            <field name="chosen_line_id"/>
+                            <field name="chosen_by"/>
+                            <field name="chosen_at"/>
+                            <field name="requester_id"/>
+                            <field name="requested_at"/>
+                            <field name="decision_reason"/>
+                        </group>
+                    </group>
+                    <field name="option_ids">
+                        <tree>
+                            <field name="option_key"/>
+                            <field name="line_type"/>
+                            <field name="action_type"/>
+                            <field name="score"/>
+                            <field name="reason"/>
+                            <field name="modified_from_id"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_onto_recommendation" model="ir.actions.act_window">
+        <field name="name">Onto recommendations</field>
+        <field name="res_model">onto.recommendation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_onto_recommendation"
+              name="Onto recommendations"
+              parent="odoo_dashboards_saas.menu_dashboard_saas_configurations"
+              action="action_onto_recommendation"
+              groups="odoo_dashboards_bi.group_onto_branch_manager"
+              sequence="50"/>
+</odoo>

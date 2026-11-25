@@ -1,0 +1,61 @@
+# Core master data shared by every module: products, product categories and contacts.
+# Odoo 16 bindings are dotted paths from the object's base_model. Each hop before the
+# last must be a many2one, and every field on a path must be stored (loader.py).
+name: core
+domains:
+  - {key: core, label: Core master data}
+  - {key: core.products, label: Products, parent: core, synonyms: [items, skus]}
+  - {key: core.contacts, label: Contacts, parent: core, synonyms: [people, companies]}
+  # Domains with no template objects yet: the Builder may propose objects in them (steward-reviewed).
+  - {key: hr, label: Employees, synonyms: [staff, people, HR, attendance, time off, expenses, contracts]}
+  - {key: projects, label: Projects, synonyms: [tasks, timesheets]}
+  - {key: manufacturing, label: Manufacturing, synonyms: [MRP, production, work orders, bills of materials]}
+  - {key: helpdesk, label: Helpdesk, synonyms: [tickets, support]}
+  - {key: fleet, label: Fleet, synonyms: [vehicles]}
+  - {key: maintenance, label: Maintenance, synonyms: [equipment, maintenance requests]}
+  - {key: repair, label: Repairs}
+  - {key: quality, label: Quality, synonyms: [quality checks, quality alerts]}
+  - {key: calendar, label: Calendar, synonyms: [meetings, events]}
+  - {key: other, label: Other apps, synonyms: [third-party apps, custom apps]}
+objects:
+  - key: product
+    label: Product
+    domain: core.products
+    base_model: product.product
+    synonyms: [item, sku, product variant, storable product]
+    # Storable products only (plan: storable = product type 'product').
+    base_filter:
+      - {prop: product_type, op: "=", value: product}
+    properties:
+      - {key: code, label: Internal reference, role: id, bindings: {"16": default_code}, synonyms: [sku, internal reference, product code]}
+      - {key: name, label: Product name, role: dimension, bindings: {"16": product_tmpl_id.name}, synonyms: [product name, item name]}
+      - {key: category, label: Product category, role: dimension, bindings: {"16": product_tmpl_id.categ_id}, synonyms: [category, product group, family]}
+      - {key: product_type, label: Product type, role: status, bindings: {"16": product_tmpl_id.type}, synonyms: [type, storable]}
+      - {key: uom, label: Unit of measure, role: dimension, bindings: {"16": product_tmpl_id.uom_id}, synonyms: [unit, uom, unit of measure]}
+      - {key: sales_price, label: Sales price, role: measure, unit: money, bindings: {"16": product_tmpl_id.list_price}, synonyms: [list price, retail price]}
+      - {key: supplier_lines, label: Supplier lines, role: link, bindings: {"16": product_tmpl_id.seller_ids}, synonyms: [suppliers, vendor prices]}
+  - key: product_category
+    label: Product category
+    domain: core.products
+    base_model: product.category
+    synonyms: [category, product group, family]
+    properties:
+      - {key: name, label: Category name, role: dimension, bindings: {"16": name}, synonyms: [category name, group name]}
+      - {key: full_name, label: Full category path, role: id, bindings: {"16": complete_name}, synonyms: [category path, full category]}
+      - {key: parent, label: Parent category, role: dimension, bindings: {"16": parent_id}, synonyms: [parent category, parent group]}
+  - key: partner
+    label: Contact
+    domain: core.contacts
+    base_model: res.partner
+    synonyms: [contact, partner, customer, supplier, vendor, employee]
+    properties:
+      - {key: name, label: Contact name, role: id, pii: true, bindings: {"16": name}, synonyms: [name, contact name, company name]}
+      - {key: customer_rank, label: Customer rank, role: status, bindings: {"16": customer_rank}, synonyms: [customer rank, customer score]}
+      - {key: supplier_rank, label: Supplier rank, role: status, bindings: {"16": supplier_rank}, synonyms: [supplier rank, vendor rank]}
+      - {key: employee, label: Employee flag, role: status, bindings: {"16": employee}, synonyms: [employee, staff]}
+links:
+  - {key: product_category_link, label: Belongs to category, source: product, target: product_category, via: category, cardinality: "m:1"}
+rules:
+  - {key: supplier_contact, label: Supplier, object: partner, synonyms: [supplier, vendor], when: [{prop: supplier_rank, op: ">", value: 0}]}
+  - {key: customer_contact, label: Customer, object: partner, synonyms: [customer, client], when: [{prop: customer_rank, op: ">", value: 0}]}
+  - {key: employee_contact, label: Employee, object: partner, synonyms: [employee, staff], when: [{prop: employee, op: "=", value: true}]}

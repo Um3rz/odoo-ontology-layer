@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_dashboards_bi.BiOntology" owl="1">
+        <main class="o_native_bi_ontology o_native_bi_theme overflow-auto h-100 p-3 p-lg-4">
+            <header class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+                <div>
+                    <h1 class="h3">Ontology</h1>
+                    <p class="text-muted mb-2">Build the Odoo metrics and bindings used by BI chat. The build publishes them; reviewing proposals is optional.</p>
+                    <button t-if="state.status" type="button" class="btn btn-sm btn-outline-secondary"
+                            t-att-disabled="state.busy || !status.enabled" t-on-click="buildDraft">
+                        <i class="fa fa-magic me-1" aria-hidden="true"/>Build and publish ontology
+                    </button>
+                </div>
+                <button type="button" class="btn btn-outline-secondary" t-att-disabled="state.busy" t-on-click="reload">
+                    Refresh
+                </button>
+            </header>
+            <p t-if="state.error" class="alert alert-danger" role="alert" t-esc="state.error"/>
+            <p t-if="state.busy" class="o_native_bi_busy" role="status" aria-live="polite">
+                <i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>
+                <span t-esc="state.busyText"/>
+            </p>
+            <t t-if="state.status">
+                <section class="o_native_bi_surface mb-4">
+                    <div class="card-body">
+                        <h2 class="h5">Setup and release</h2>
+                        <dl class="o_native_bi_release">
+                            <dt>BI chat</dt>
+                            <dd><t t-esc="status.enabled ? (status.paused ? 'Paused' : 'Enabled') : 'Disabled'"/></dd>
+                            <dt>Active release</dt>
+                            <dd t-esc="release || 'No published release'"/>
+                            <dt>Installed release</dt>
+                            <dd t-esc="status.installed_release || 'No installed release'"/>
+                        </dl>
+                        <p t-if="releaseMismatch" class="alert alert-warning" role="status">
+                            The active ontology and the installed release differ.
+                        </p>
+                        <p t-if="drift.length" class="alert alert-warning" role="status">
+                            Review <t t-esc="drift.length"/> change(s) to Odoo bindings.
+                        </p>
+                        <div t-if="moduleChoices.length" class="o_native_bi_modules mb-3">
+                            <h3 class="h6 mb-1">Apps in the ontology</h3>
+                            <p class="text-muted small mb-2">Odoo apps are mapped by default. Add third-party modules or leave apps out, then build the draft again.</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <label t-foreach="moduleChoices" t-as="choice" t-key="choice.module"
+                                       class="o_native_bi_module" t-att-class="{o_native_bi_module_on: moduleSelected(choice.module)}">
+                                    <input type="checkbox" class="form-check-input me-1"
+                                           t-att-checked="moduleSelected(choice.module)"
+                                           t-on-change="() => this.toggleModule(choice.module)"/>
+                                    <t t-esc="choice.label"/>
+                                    <small t-if="!choice.standard" class="text-muted ms-1">third-party</small>
+                                </label>
+                            </div>
+                            <button t-if="modulesChanged" type="button" class="btn btn-sm btn-primary mt-2"
+                                    t-att-disabled="state.busy" t-on-click="saveModules">Save apps</button>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary" t-att-disabled="state.busy"
+                                    t-on-click="setEnabled"
+                                    t-esc="status.enabled ? 'Disable BI chat' : 'Enable BI chat'"/>
+                            <button t-if="candidate" type="button" class="btn btn-outline-primary"
+                                    t-att-disabled="state.busy" t-on-click="retry">Retry candidate release</button>
+                            <button t-if="previousRelease" type="button" class="btn btn-outline-secondary"
+                                    t-att-disabled="state.busy" t-on-click="rollback">Restore previous release</button>
+                            <button t-if="release and !releaseMismatch" type="button" class="btn btn-outline-secondary"
+                                    t-att-disabled="state.busy" t-on-click="() => this.run('reconcile_metrics')">Reconcile baseline metrics</button>
+                        </div>
+                    </div>
+                </section>
+                <nav class="nav nav-tabs mb-3" aria-label="Ontology views">
+                    <button type="button" class="nav-link" t-att-class="{active: state.tab === 'graph'}"
+                            t-on-click="() => this.state.tab = 'graph'">Knowledge graph</button>
+                    <button type="button" class="nav-link" t-att-class="{active: state.tab === 'taxonomy'}"
+                            t-on-click="() => this.state.tab = 'taxonomy'">Taxonomy</button>
+                    <button type="button" class="nav-link" t-att-class="{active: state.tab === 'metrics'}"
+                            t-att-aria-current="state.tab === 'metrics' ? 'page' : null"
+                            t-on-click="() => this.state.tab = 'metrics'">Metrics</button>
+                    <button type="button" class="nav-link" t-att-class="{active: state.tab === 'objects'}"
+                            t-att-aria-current="state.tab === 'objects' ? 'page' : null"
+                            t-on-click="() => this.state.tab = 'objects'">Objects</button>
+                    <button type="button" class="nav-link" t-att-class="{active: state.tab === 'links'}"
+                            t-att-aria-current="state.tab === 'links' ? 'page' : null"
+                            t-on-click="() => this.state.tab = 'links'">Relationships</button>
+                    <button type="button" class="nav-link" t-att-class="{active: state.tab === 'review'}"
+                            t-att-aria-current="state.tab === 'review' ? 'page' : null"
+                            t-on-click="() => this.state.tab = 'review'">Draft review</button>
+                </nav>
+                <BiOntologyMap t-if="state.tab === 'graph' or state.tab === 'taxonomy'"
+                               t-key="state.tab" view="state.tab" status="status"/>
+                <section t-elif="state.tab === 'review'" aria-label="Draft review">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <h2 class="h5 m-0">Draft proposals</h2>
+                        <div class="d-flex gap-2">
+                            <button t-if="pendingCount" type="button" class="btn btn-outline-primary"
+                                    t-att-disabled="state.busy" t-on-click="approveAll">
+                                Approve all (<t t-esc="pendingCount"/>)
+                            </button>
+                            <button t-if="canPublish" type="button" class="btn btn-primary"
+                                    t-att-disabled="state.busy" t-on-click="publish">Publish changes</button>
+                        </div>
+                    </div>
+                    <p t-if="!proposals.length" class="text-muted">Build the ontology to map your apps. Reviewing the proposals is optional.</p>
+                    <t t-set="groups" t-value="proposalGroups"/>
+                    <t t-foreach="groups.lead" t-as="group" t-key="group.key">
+                        <t t-call="odoo_dashboards_bi.BiOntology.kindGroup"/>
+                    </t>
+                    <section t-if="groups.objects.length" class="o_native_bi_group">
+                        <h3 class="o_native_bi_group_title">
+                            <t t-foreach="groups.counters" t-as="counter" t-key="counter.kind">
+                                <span class="o_native_bi_counter">
+                                    <t t-esc="counter.label"/> <span class="text-muted fw-normal">· <t t-esc="counter.total"/></span>
+                                    <span t-if="counter.pending" class="o_native_bi_pill ms-2"><t t-esc="counter.pending"/> to review</span>
+                                    <span t-if="counter.failed" class="o_native_bi_pill text-danger ms-2"><t t-esc="counter.failed"/> failed</span>
+                                </span>
+                            </t>
+                        </h3>
+                        <section t-foreach="groups.objects" t-as="group" t-key="group.key" class="o_native_bi_group">
+                            <div class="o_native_bi_object_head">
+                                <h4 class="h6 m-0">
+                                    <t t-esc="group.label"/><span t-if="group.summary" class="text-muted fw-normal">: <t t-esc="group.summary"/></span>
+                                    <span t-if="group.pending" class="o_native_bi_pill ms-2"><t t-esc="group.pending"/> to review</span>
+                                    <span t-if="group.failed" class="o_native_bi_pill text-danger ms-2"><t t-esc="group.failed"/> failed</span>
+                                </h4>
+                                <button t-if="group.batch.length" type="button" class="btn btn-sm btn-outline-primary"
+                                        t-att-disabled="state.busy" t-on-click="() => this.approveBatch(group)">
+                                    Approve all batch-approvable (<t t-esc="group.batch.length"/>)
+                                </button>
+                            </div>
+                            <div class="o_native_bi_gallery">
+                                <t t-foreach="group.items" t-as="proposal" t-key="proposal.id">
+                                    <t t-call="odoo_dashboards_bi.BiOntology.proposal"/>
+                                </t>
+                            </div>
+                        </section>
+                    </section>
+                    <t t-foreach="groups.rest" t-as="group" t-key="group.key">
+                        <t t-call="odoo_dashboards_bi.BiOntology.kindGroup"/>
+                    </t>
+                </section>
+                <section t-else="" aria-label="Ontology entries">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <input class="form-control o_native_bi_ontology_search" type="search"
+                               placeholder="Search ontology" aria-label="Search ontology" t-model="state.query"/>
+                        <button t-if="state.tab === 'objects' and objectRows.some(row => !row.description_source)"
+                                type="button" class="btn btn-outline-secondary"
+                                t-att-disabled="state.busy" t-on-click="generateDescriptions">Propose missing descriptions</button>
+                    </div>
+                    <p t-if="!rows.length" class="text-muted">No matching entries.</p>
+                    <div class="o_native_bi_gallery">
+                    <article t-foreach="rows" t-as="row" t-key="row.key || row.id || row_index"
+                             class="o_native_bi_surface o_native_bi_entry p-3">
+                        <h3 class="o_native_bi_entry_title">
+                            <t t-esc="row.label || row.name || row.key || [row.source, row.target].join(' → ')"/>
+                            <span t-if="row.draft" class="text-muted small ms-2">Draft</span>
+                        </h3>
+                        <div t-if="state.tab === 'objects'">
+                            <div t-if="state.descriptionKey === row.key">
+                                <label class="form-label" t-att-for="'bi-description-' + row.key">Business description</label>
+                                <textarea class="form-control" rows="2" maxlength="400"
+                                          t-att-id="'bi-description-' + row.key" t-model="state.descriptionText"/>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                            t-att-disabled="state.busy" t-on-click="saveDescription">Save description</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            t-att-disabled="state.busy" t-on-click="() => this.state.descriptionKey = null">Cancel</button>
+                                </div>
+                            </div>
+                            <t t-else="">
+                                <p class="o_native_bi_card_text mb-1">
+                                    <t t-esc="row.description || 'No business description yet.'"/>
+                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1 o_native_bi_icon_button"
+                                            title="Edit description" aria-label="Edit description"
+                                            t-att-disabled="state.busy" t-on-click="() => this.editDescription(row)">
+                                        <i class="fa fa-pencil" aria-hidden="true"/>
+                                    </button>
+                                </p>
+                                <small t-if="row.description_source" class="text-muted"
+                                       t-esc="row.description_source === 'ai' ? 'AI proposal' : 'Edited by steward'"/>
+                            </t>
+                        </div>
+                        <p t-elif="row.description" class="o_native_bi_card_text text-muted mb-0" t-esc="row.description"/>
+                        <details t-if="rowFields(row).length" class="o_native_bi_card_more">
+                            <summary class="small">Read more</summary>
+                            <dl class="o_native_bi_release mt-2 mb-0">
+                                <t t-foreach="rowFields(row)" t-as="field" t-key="field_index">
+                                    <dt t-esc="field[0]"/>
+                                    <dd t-esc="format(field[1])"/>
+                                </t>
+                            </dl>
+                        </details>
+                    </article>
+                    </div>
+                </section>
+            </t>
+        </main>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiOntology.kindGroup" owl="1">
+        <section class="o_native_bi_group">
+            <h3 class="o_native_bi_group_title">
+                <t t-esc="group.label"/> <span class="text-muted fw-normal">· <t t-esc="group.items.length"/></span>
+                <span t-if="group.pending" class="o_native_bi_pill ms-2"><t t-esc="group.pending"/> to review</span>
+                <span t-if="group.failed" class="o_native_bi_pill text-danger ms-2"><t t-esc="group.failed"/> failed</span>
+            </h3>
+            <div class="o_native_bi_gallery">
+                <t t-foreach="group.items" t-as="proposal" t-key="proposal.id">
+                    <t t-call="odoo_dashboards_bi.BiOntology.proposal"/>
+                </t>
+            </div>
+        </section>
+    </t>
+
+    <t t-name="odoo_dashboards_bi.BiOntology.proposal" owl="1">
+        <article class="o_native_bi_surface p-3">
+            <div class="o_native_bi_card_head">
+                <div class="o_native_bi_card_title">
+                    <h3 class="h6 mb-1" t-esc="proposalLabel(proposal)" t-att-title="proposalLabel(proposal)"/>
+                    <p class="text-muted mb-0">
+                        <t t-esc="proposal.kind || ''"/>
+                        <span t-if="sourceBadge(proposal)" class="o_native_bi_pill ms-1" t-esc="sourceBadge(proposal)"/>
+                        <span t-if="proposal.informational" class="o_native_bi_pill ms-1">Template match</span>
+                        <span t-else="" class="o_native_bi_pill ms-1" t-esc="proposal.state || ''"/>
+                        <span t-if="proposal.auto" class="o_native_bi_pill ms-1"
+                              title="Approved by the ontology builder; not yet reviewed">Auto</span>
+                    </p>
+                </div>
+                <div t-if="canReview(proposal)" class="o_native_bi_card_actions">
+                    <button t-if="canApprove(proposal)"
+                            type="button" class="btn btn-sm btn-outline-primary"
+                            t-att-disabled="state.busy"
+                            t-on-click="() => this.review(proposal.id, 'approved')"
+                            t-esc="proposal.auto ? 'Mark reviewed' : 'Approve'"/>
+                    <button t-if="proposal.state !== 'revoked'"
+                            type="button" class="btn btn-sm btn-outline-secondary"
+                            t-att-disabled="state.busy"
+                            t-on-click="() => this.review(proposal.id, 'revoked')">Revoke</button>
+                </div>
+            </div>
+            <p t-if="proposal.kind === 'property'" class="small mb-1">
+                <t t-esc="proposal.payload?.object"/>
+                <t t-if="proposal.payload?.role"> · <t t-esc="proposal.payload.role"/></t>
+                <t t-if="proposal.payload?.binding"> · <code t-esc="proposal.payload.binding"/></t>
+                <t t-if="fillRate(proposal)"> · <t t-esc="fillRate(proposal)"/></t>
+            </p>
+            <p t-if="proposal.kind === 'rule' and ruleText(proposal)" class="small mb-1">
+                <t t-esc="proposal.payload?.object"/> · <code t-esc="ruleText(proposal)"/>
+            </p>
+            <p t-if="proposal.informational" class="small text-muted mb-1">Template match — informational, nothing to approve</p>
+            <p t-elif="failed(proposal)" class="small text-danger mb-1" t-esc="blockedReason(proposal)"/>
+            <p t-if="proposal.state === 'proposed' and proposal.payload?.auto_note" class="small text-muted mb-1"
+               t-esc="proposal.payload.auto_note"/>
+            <ul t-if="proposal.payload?.notes?.length" class="small text-muted mb-1 ps-3">
+                <li t-foreach="proposal.payload.notes" t-as="note" t-key="note_index" t-esc="note"/>
+            </ul>
+            <details t-if="proposal.payload" class="o_native_bi_card_more small">
+                <summary>Proposal details</summary>
+                <ul t-if="proposal.validation?.problems?.length">
+                    <li t-foreach="proposal.validation.problems" t-as="problem"
+                        t-key="problem_index" t-esc="format(problem)"/>
+                </ul>
+                <pre t-esc="format(proposal.payload)"/>
+            </details>
+        </article>
+    </t>
+</templates>
